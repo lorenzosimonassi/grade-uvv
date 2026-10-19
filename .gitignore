@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.env
+*.log
+
+# artefatos de ferramentas de design/brainstorm
+.superpowers/
+.taste-skill/

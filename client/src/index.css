@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+
+/*
+  Estilo "framed sheet": a moldura (sidebar + barra do topo) num tom azul-acinzentado,
+  o trabalho numa folha branca. A cor de destaque fica nos dados, não no cromo.
+*/
+@theme {
+  --font-sans: 'IBM Plex Sans', Inter, system-ui, sans-serif;
+
+  --color-frame: #eef2f6;
+  --color-sheet: #ffffff;
+  --color-raised: #f4f6f8;
+  --color-active: #dfe5ec;
+  --color-line: #e8eaec;
+  --color-rule: #f0f1f2;
+  --color-control: #cdced1;
+
+  --color-ink: #131416;
+  --color-muted: #5d5f60;
+  --color-primary: #1d1f20;
+
+  --color-accent: #1b6c80;
+  --color-accent-soft: #e5f0f3;
+  --color-accent-ink: #0e4351;
+
+  --color-positive: #1e7b4f;
+  --color-positive-bg: #dcfae5;
+  --color-positive-ink: #04250e;
+  --color-negative: #c4242a;
+  --color-negative-bg: #ffedea;
+  --color-negative-ink: #831c1e;
+  --color-warning-bg: #fffbeb;
+  --color-warning-line: #fde68a;
+  --color-warning-ink: #92400e;
+
+  /* tons de identidade das disciplinas no quadro (pálidos, só para distinguir) */
+  --color-d1: #dcecf0;
+  --color-d1-edge: #1b6c80;
+  --color-d2: #e1eafa;
+  --color-d2-edge: #2f70bb;
+  --color-d3: #f6ead2;
+  --color-d3-edge: #a86f0c;
+  --color-d4: #dff2e5;
+  --color-d4-edge: #2a7d4c;
+  --color-d5: #f8e1e4;
+  --color-d5-edge: #b23a4c;
+  --color-d6: #e7e9ec;
+  --color-d6-edge: #4f5862;
+  --color-d7: #eef0d8;
+  --color-d7-edge: #6b7316;
+
+  --radius-sheet: 16px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-frame text-ink font-sans text-sm;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
