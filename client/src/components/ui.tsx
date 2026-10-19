@@ -1,23 +1,51 @@
+import { ChevronDown } from 'lucide-react'
 import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
 
-export function Marca({ className = 'size-8' }: { className?: string }) {
+/** Selo redondo (azul com aro dourado) usado na marca e no favicon. */
+export function Selo({ className = 'size-12' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="var(--color-accent)" />
-      <rect x="7" y="8" width="8" height="7" rx="1.5" fill="#fff" />
-      <rect x="17" y="8" width="8" height="7" rx="1.5" fill="#fff" opacity=".45" />
-      <rect x="7" y="17" width="8" height="7" rx="1.5" fill="#fff" opacity=".45" />
-      <rect x="17" y="17" width="8" height="7" rx="1.5" fill="#fff" />
+    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
+      <circle cx="24" cy="24" r="23" fill="#c9a227" />
+      <circle cx="24" cy="24" r="20" fill="var(--color-marinho)" />
+      <circle cx="24" cy="24" r="17.5" fill="none" stroke="#c9a227" strokeWidth=".8" strokeDasharray="1.2 1.6" />
+      <rect x="15" y="15" width="8" height="8" rx="1.2" fill="#fff" />
+      <rect x="25" y="15" width="8" height="8" rx="1.2" fill="#fff" opacity=".5" />
+      <rect x="15" y="25" width="8" height="8" rx="1.2" fill="#fff" opacity=".5" />
+      <rect x="25" y="25" width="8" height="8" rx="1.2" fill="#c9a227" />
     </svg>
+  )
+}
+
+/** Marca do topo: selo + nome da universidade em versalete serifado. */
+export function Marca() {
+  return (
+    <span className="flex items-center gap-2.5 text-marinho">
+      <Selo />
+      <span className="hidden leading-none sm:block" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+        <span className="block text-[9px] tracking-[0.32em]">UNIVERSIDADE</span>
+        <span className="block text-[19px] tracking-[0.02em]">VILA VELHA</span>
+        <span className="mt-0.5 block text-[7px] tracking-[0.3em] text-muted">ESPÍRITO SANTO</span>
+      </span>
+    </span>
+  )
+}
+
+/** Título de página no estilo do portal: fonte leve, controle à direita e linha embaixo. */
+export function TituloPagina({ titulo, children }: { titulo: string; children?: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-borda pb-3">
+      <h1 className="text-[28px] leading-tight font-light text-titulo">{titulo}</h1>
+      {children}
+    </div>
   )
 }
 
 type Variante = 'primario' | 'secundario' | 'texto'
 
 const variantes: Record<Variante, string> = {
-  primario: 'bg-primary text-white hover:bg-black active:bg-black disabled:bg-control',
-  secundario: 'bg-sheet text-ink border border-control hover:bg-raised active:bg-active disabled:text-muted',
-  texto: 'text-ink hover:bg-raised active:bg-active disabled:text-muted',
+  primario: 'bg-acao text-white hover:bg-acao-hover disabled:bg-borda disabled:text-muted',
+  secundario: 'bg-cartao text-ink border border-borda hover:bg-chip disabled:text-muted',
+  texto: 'text-link hover:bg-acao-suave disabled:text-muted',
 }
 
 export function Botao({
@@ -29,7 +57,7 @@ export function Botao({
   return (
     <button
       {...props}
-      className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3.5 text-sm font-medium transition-colors disabled:cursor-not-allowed ${variantes[variante]} ${className}`}
+      className={`inline-flex h-9 items-center justify-center gap-2 rounded-[3px] px-3.5 text-sm transition-colors disabled:cursor-not-allowed ${variantes[variante]} ${className}`}
     >
       {children}
     </button>
@@ -43,14 +71,14 @@ interface CampoBase {
 }
 
 const classeCampo =
-  'h-10 w-full rounded-lg border bg-white px-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-accent focus:ring-3 focus:ring-accent/15'
+  'h-10 w-full rounded-[3px] border bg-white px-3 text-sm text-ink outline-none transition-colors placeholder:text-muted/80 focus:border-acao focus:ring-3 focus:ring-acao/20'
 
 export const Campo = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & CampoBase>(
   function Campo({ rotulo, erro, dica, id, ...props }, ref) {
     const campoId = id ?? props.name
     return (
-      <div className="flex flex-col gap-2">
-        <label htmlFor={campoId} className="text-sm font-medium">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={campoId} className="text-[13px] font-semibold text-titulo">
           {rotulo}
         </label>
         <input
@@ -58,7 +86,7 @@ export const Campo = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
           id={campoId}
           aria-invalid={Boolean(erro)}
           aria-describedby={erro ? `${campoId}-erro` : undefined}
-          className={`${classeCampo} ${erro ? 'border-negative' : 'border-line'}`}
+          className={`${classeCampo} ${erro ? 'border-negative' : 'border-borda'}`}
           {...props}
         />
         {erro ? (
@@ -73,6 +101,18 @@ export const Campo = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   },
 )
 
+const setaSelect = 'appearance-none pr-8 disabled:bg-chip disabled:text-titulo'
+
+function Seta() {
+  return (
+    <ChevronDown
+      className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-titulo"
+      strokeWidth={2}
+      aria-hidden
+    />
+  )
+}
+
 export function Selecao({
   rotulo,
   erro,
@@ -82,19 +122,43 @@ export function Selecao({
 }: SelectHTMLAttributes<HTMLSelectElement> & CampoBase) {
   const campoId = id ?? props.name
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={campoId} className="text-sm font-medium">
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={campoId} className="text-[13px] font-semibold text-titulo">
         {rotulo}
       </label>
+      <div className="relative">
+        <select
+          id={campoId}
+          aria-invalid={Boolean(erro)}
+          className={`${classeCampo} ${setaSelect} ${erro ? 'border-negative' : 'border-borda'}`}
+          {...props}
+        >
+          {children}
+        </select>
+        <Seta />
+      </div>
+      {erro && <p className="text-xs text-negative-ink">{erro}</p>}
+    </div>
+  )
+}
+
+/** Select compacto, sem rótulo visível (o do lado do título da página). */
+export function SelecaoCompacta({
+  rotulo,
+  className = '',
+  children,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement> & { rotulo: string }) {
+  return (
+    <div className={`relative ${className}`}>
       <select
-        id={campoId}
-        aria-invalid={Boolean(erro)}
-        className={`${classeCampo} appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><path d=%22M4 6l4 4 4-4%22 fill=%22none%22 stroke=%22%235d5f60%22 stroke-width=%221.5%22/></svg>')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat pr-9 ${erro ? 'border-negative' : 'border-line'}`}
+        aria-label={rotulo}
+        className={`h-9 w-full rounded-[3px] border border-borda bg-white px-3 text-sm text-ink outline-none focus:border-acao focus:ring-3 focus:ring-acao/20 ${setaSelect}`}
         {...props}
       >
         {children}
       </select>
-      {erro && <p className="text-xs text-negative-ink">{erro}</p>}
+      <Seta />
     </div>
   )
 }
@@ -102,10 +166,10 @@ export function Selecao({
 export function Aviso({ tom, children }: { tom: 'erro' | 'info'; children: ReactNode }) {
   const cores =
     tom === 'erro'
-      ? 'bg-negative-bg text-negative-ink border-negative/20'
-      : 'bg-warning-bg text-warning-ink border-warning-line'
+      ? 'bg-negative-bg text-negative-ink border-negative'
+      : 'bg-warning-bg text-warning-ink border-ambar'
   return (
-    <div role={tom === 'erro' ? 'alert' : 'status'} className={`rounded-lg border px-3.5 py-2.5 text-sm ${cores}`}>
+    <div role={tom === 'erro' ? 'alert' : 'status'} className={`border-l-4 px-3.5 py-2.5 text-sm ${cores}`}>
       {children}
     </div>
   )

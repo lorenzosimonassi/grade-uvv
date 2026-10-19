@@ -31,23 +31,23 @@ export function QuadroSemanal({ faixas, grade, tom, previa }: Props) {
   const previaEmConflito = previa?.estado.tipo === 'conflito'
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-line" data-ui>
-      <table className="w-full min-w-[640px] table-fixed border-collapse">
+    <div className="overflow-x-auto border border-borda bg-cartao">
+      <table className="w-full min-w-[540px] table-fixed border-collapse">
         <caption className="sr-only">Sua semana, por dia e horário</caption>
         <colgroup>
-          <col className="w-[88px]" />
+          <col className="w-[72px]" />
           {dias.map((d) => (
             <col key={d.id} />
           ))}
         </colgroup>
         <thead>
           <tr>
-            <th scope="col" className="h-10 border-b border-line bg-raised" />
+            <th scope="col" className="h-10 border-b border-borda bg-chip" />
             {dias.map((d) => (
               <th
                 key={d.id}
                 scope="col"
-                className="h-10 border-b border-l border-line bg-raised text-xs font-medium text-muted"
+                className="h-10 border-b border-l border-borda bg-chip text-xs font-semibold text-titulo"
               >
                 {d.curto}
               </th>
@@ -58,8 +58,8 @@ export function QuadroSemanal({ faixas, grade, tom, previa }: Props) {
           {faixas.map((f, i) => {
             const novoTurno = i === 0 || turno(faixas[i - 1].inicioMin) !== turno(f.inicioMin)
             return (
-              <tr key={`${f.inicioMin}-${f.fimMin}`} className={novoTurno && i > 0 ? 'border-t-[6px] border-t-raised' : ''}>
-                <th scope="row" className="border-b border-rule px-3 py-2 text-left align-top font-normal">
+              <tr key={`${f.inicioMin}-${f.fimMin}`} className={novoTurno && i > 0 ? 'border-t-[6px] border-t-chip' : ''}>
+                <th scope="row" className="border-b border-divisor px-2.5 py-2 text-left align-top font-normal">
                   {novoTurno && <span className="block text-[11px] text-muted">{turno(f.inicioMin)}</span>}
                   <span className="num block text-xs text-ink">{hora(f.inicioMin)}</span>
                   <span className="num block text-[11px] text-muted">{hora(f.fimMin)}</span>
@@ -71,15 +71,15 @@ export function QuadroSemanal({ faixas, grade, tom, previa }: Props) {
                   const atingido = Boolean(bloco && previaAqui && previaEmConflito && bloco.disciplinaId !== previa?.disciplina.id)
 
                   return (
-                    <td key={d.id} className="h-[76px] border-b border-l border-rule p-1 align-top">
+                    <td key={d.id} className="h-[72px] border-b border-l border-divisor p-1 align-top">
                       <div className="relative h-full">
                         {bloco && (
                           <div
-                            className={`h-full rounded-md border-l-[3px] px-2 py-1.5 transition-opacity ${TOM_BLOCO[tom.get(bloco.disciplinaId) ?? 1]} ${
+                            className={`h-full rounded-[2px] border-l-[3px] px-2 py-1.5 transition-opacity ${TOM_BLOCO[tom.get(bloco.disciplinaId) ?? 1]} ${
                               previaAqui && !atingido && bloco.disciplinaId === previa?.disciplina.id ? 'opacity-35' : ''
                             } ${atingido ? 'ring-2 ring-negative ring-offset-1' : ''}`}
                           >
-                            <p className="line-clamp-2 text-xs leading-snug font-medium text-ink">
+                            <p className="line-clamp-2 text-xs leading-snug font-semibold text-ink">
                               {bloco.disciplinaNome}
                             </p>
                             <p className="num mt-0.5 truncate text-[11px] text-ink/70">
@@ -88,15 +88,15 @@ export function QuadroSemanal({ faixas, grade, tom, previa }: Props) {
                           </div>
                         )}
                         {previaAqui && !bloco && (
-                          <div className="absolute inset-0 flex flex-col justify-start rounded-md border-[1.5px] border-dashed border-accent bg-accent-soft/50 px-2 py-1.5">
-                            <p className="line-clamp-2 text-xs leading-snug font-medium text-accent-ink">
+                          <div className="absolute inset-0 flex flex-col justify-start rounded-[2px] border-[1.5px] border-dashed border-acao bg-acao-suave/70 px-2 py-1.5">
+                            <p className="line-clamp-2 text-xs leading-snug font-semibold text-link-escuro">
                               {previa!.disciplina.nome}
                             </p>
-                            <p className="num text-[11px] text-accent-ink/80">{previa!.turma.codigo}</p>
+                            <p className="num text-[11px] text-link-escuro/80">{previa!.turma.codigo}</p>
                           </div>
                         )}
                         {atingido && (
-                          <span className="absolute right-1 bottom-1 rounded bg-negative px-1.5 py-px text-[11px] font-medium text-white">
+                          <span className="absolute right-1 bottom-1 rounded-[2px] bg-negative px-1.5 py-px text-[11px] font-semibold text-white">
                             Conflito
                           </span>
                         )}

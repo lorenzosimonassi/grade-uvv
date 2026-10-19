@@ -1,14 +1,20 @@
 import {
   BookOpen,
   CalendarDays,
-  ClipboardList,
+  Clock,
+  CreditCard,
+  DollarSign,
   FileText,
-  House,
+  Landmark,
+  LayoutDashboard,
   LayoutGrid,
   LogOut,
+  Mail,
   Menu,
+  Repeat,
+  Scale,
+  Table2,
   UserRound,
-  Wallet,
   X,
   type LucideIcon,
 } from 'lucide-react'
@@ -22,33 +28,22 @@ interface ItemMenu {
   ativo?: boolean
 }
 
-// Imita o menu do portal do aluno; só o simulador funciona aqui.
-const GRUPOS: { titulo?: string; itens: ItemMenu[] }[] = [
-  {
-    itens: [
-      { rotulo: 'Início', icone: House },
-      { rotulo: 'Meus dados', icone: UserRound },
-    ],
-  },
-  {
-    titulo: 'Acadêmico',
-    itens: [
-      { rotulo: 'Notas e faltas', icone: ClipboardList },
-      { rotulo: 'Horário de aulas', icone: CalendarDays },
-      { rotulo: 'Biblioteca', icone: BookOpen },
-    ],
-  },
-  {
-    titulo: 'Matrícula',
-    itens: [
-      { rotulo: 'Simulador de grade', icone: LayoutGrid, ativo: true },
-      { rotulo: 'Requerimentos', icone: FileText },
-    ],
-  },
-  {
-    titulo: 'Financeiro',
-    itens: [{ rotulo: 'Boletos e pagamentos', icone: Wallet }],
-  },
+// O mesmo menu do portal do aluno; aqui só o simulador funciona.
+const MENU: ItemMenu[] = [
+  { rotulo: 'Dashboard', icone: LayoutDashboard },
+  { rotulo: 'Informações Pessoais', icone: UserRound },
+  { rotulo: 'Mensagens', icone: Mail },
+  { rotulo: 'Horários', icone: Clock },
+  { rotulo: 'Quadro Curricular', icone: Table2 },
+  { rotulo: 'Simulador de Grade', icone: LayoutGrid, ativo: true },
+  { rotulo: 'Financeiro', icone: DollarSign },
+  { rotulo: 'Agendamento Financeiro', icone: Scale },
+  { rotulo: 'Secretaria On-line', icone: Landmark },
+  { rotulo: 'Calendário de Atividades', icone: CalendarDays },
+  { rotulo: 'Carteira de Estudante', icone: CreditCard },
+  { rotulo: 'Histórico Escolar', icone: BookOpen },
+  { rotulo: 'Boletins', icone: FileText },
+  { rotulo: 'Rematrícula', icone: Repeat },
 ]
 
 function iniciais(nome: string) {
@@ -56,85 +51,58 @@ function iniciais(nome: string) {
   return ((partes[0]?.[0] ?? '') + (partes.length > 1 ? partes.at(-1)![0] : '')).toUpperCase()
 }
 
+function Perfil() {
+  const { usuario } = useAuth()
+  if (!usuario) return null
+  return (
+    <div className="hexagonos flex flex-col items-center px-5 pt-6 pb-5 text-center text-white">
+      <span className="grid size-[84px] place-items-center rounded-full border-4 border-white bg-[#5a6a99] text-2xl font-semibold tracking-wide shadow-md">
+        {iniciais(usuario.nome)}
+      </span>
+      <p className="mt-4 text-[13px] leading-snug font-semibold uppercase">{usuario.nome}</p>
+      <p className="num text-[13px] text-[#8fc3f0]">Matrícula: {usuario.matricula}</p>
+      <p className="text-[13px] leading-snug">
+        {usuario.curso.nome} - {usuario.periodoAtual}º período
+      </p>
+    </div>
+  )
+}
+
 function Navegacao() {
   return (
-    <nav aria-label="Portal do aluno" className="flex flex-col gap-5">
-      {GRUPOS.map((grupo, i) => (
-        <div key={i} className="flex flex-col gap-0.5">
-          {grupo.titulo && <p className="px-3 pb-1.5 text-xs text-muted">{grupo.titulo}</p>}
-          {grupo.itens.map(({ rotulo, icone: Icone, ativo }) =>
-            ativo ? (
+    <nav aria-label="Menu do portal" className="py-1">
+      <ul>
+        {MENU.map(({ rotulo, icone: Icone, ativo }) => (
+          <li key={rotulo}>
+            {ativo ? (
               <a
-                key={rotulo}
                 href="/simulador"
                 aria-current="page"
-                className="flex h-9 items-center gap-2.5 rounded-lg bg-active px-3 font-medium text-ink"
+                className="flex h-12 items-center gap-3.5 border-l-4 border-acao bg-sidebar-ativo pr-4 pl-[22px] font-semibold text-white"
               >
-                <Icone className="size-4 text-accent" strokeWidth={1.75} aria-hidden />
+                <Icone className="size-[18px]" strokeWidth={2} aria-hidden />
                 {rotulo}
               </a>
             ) : (
               <span
-                key={rotulo}
                 aria-disabled="true"
                 title="Disponível apenas no portal oficial"
-                className="flex h-9 cursor-not-allowed items-center gap-2.5 rounded-lg px-3 text-muted/70"
+                className="flex h-12 cursor-default items-center gap-3.5 border-l-4 border-transparent pr-4 pl-[22px] text-sidebar-texto/85 hover:bg-white/5"
               >
-                <Icone className="size-4" strokeWidth={1.5} aria-hidden />
+                <Icone className="size-[18px]" strokeWidth={1.75} aria-hidden />
                 {rotulo}
               </span>
-            ),
-          )}
-        </div>
-      ))}
+            )}
+          </li>
+        ))}
+      </ul>
     </nav>
   )
 }
 
-function CartaoAluno() {
-  const { usuario, sair } = useAuth()
-  if (!usuario) return null
-  return (
-    <div className="flex items-center gap-3 rounded-xl bg-sheet/70 p-3">
-      <span className="grid size-9 flex-none place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent-ink">
-        {iniciais(usuario.nome)}
-      </span>
-      <div className="min-w-0 flex-1 leading-tight">
-        <p className="truncate font-medium">{usuario.nome}</p>
-        <p className="num truncate text-xs text-muted">
-          {usuario.matricula}, {usuario.periodoAtual}º período
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={sair}
-        className="grid size-8 flex-none place-items-center rounded-lg text-muted hover:bg-active hover:text-ink"
-        aria-label="Sair da conta"
-        title="Sair"
-      >
-        <LogOut className="size-4" strokeWidth={1.75} />
-      </button>
-    </div>
-  )
-}
-
-function CabecalhoMarca() {
-  return (
-    <div className="flex items-center gap-2.5 px-1">
-      <Marca />
-      <div className="leading-tight">
-        <p className="font-semibold">Portal do Aluno</p>
-        <p className="text-xs text-muted">Ciência da Computação</p>
-      </div>
-    </div>
-  )
-}
-
-/**
- * Moldura em L: sidebar e barra do topo no mesmo tom, sem linha entre elas;
- * a página fica numa folha branca com 8px de recuo à direita e embaixo.
- */
-export function AppShell({ titulo, children }: { titulo: string; children: ReactNode }) {
+/** Moldura do portal: barra branca no topo, sidebar azul-marinho e conteúdo em cinza claro. */
+export function AppShell({ children }: { children: ReactNode }) {
+  const { sair } = useAuth()
   const [menuAberto, setMenuAberto] = useState(false)
 
   useEffect(() => {
@@ -145,59 +113,55 @@ export function AppShell({ titulo, children }: { titulo: string; children: React
   }, [menuAberto])
 
   return (
-    <div className="min-h-dvh lg:grid lg:h-dvh lg:grid-cols-[236px_minmax(0,1fr)] lg:grid-rows-[48px_minmax(0,1fr)]">
-      {/* sidebar (desktop) */}
-      <aside className="hidden lg:row-span-2 lg:flex lg:flex-col lg:gap-7 lg:overflow-y-auto lg:px-3 lg:pt-3 lg:pb-3">
-        <div className="flex h-9 items-center">
-          <CabecalhoMarca />
-        </div>
-        <Navegacao />
-        <div className="mt-auto">
-          <CartaoAluno />
-        </div>
-      </aside>
-
-      {/* barra do topo */}
-      <header className="sticky top-0 z-20 flex h-12 items-center gap-3 bg-frame px-4 lg:static lg:px-2">
+    <div className="flex min-h-dvh flex-col">
+      <header className="sticky top-0 z-30 flex h-[72px] flex-none items-center border-b border-borda bg-white lg:h-[92px]">
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-lg hover:bg-active lg:hidden"
+          className="ml-2 grid size-10 place-items-center rounded text-marinho hover:bg-chip lg:hidden"
           onClick={() => setMenuAberto(true)}
           aria-label="Abrir menu"
         >
-          <Menu className="size-5" strokeWidth={1.75} />
+          <Menu className="size-6" strokeWidth={1.75} />
         </button>
-        <p className="text-muted">
-          <span className="hidden sm:inline">Matrícula / </span>
-          <span className="text-ink">{titulo}</span>
-        </p>
+        <div className="flex h-full items-center px-3 lg:w-[280px] lg:justify-center lg:px-0">
+          <Marca />
+        </div>
+        <span className="mx-2 hidden h-8 w-px bg-borda lg:block" aria-hidden />
+        <p className="ml-1 text-base font-bold text-marinho lg:ml-6 lg:text-lg">Portal do Aluno</p>
+        <button
+          type="button"
+          onClick={sair}
+          className="mr-3 ml-auto flex flex-col items-center gap-0.5 rounded px-3 py-1.5 text-xs text-ink hover:bg-chip lg:mr-6"
+        >
+          <LogOut className="size-6 text-titulo" strokeWidth={2.25} aria-hidden />
+          Sair
+        </button>
       </header>
 
-      {/* folha */}
-      <div className="bg-sheet lg:mr-2 lg:mb-2 lg:overflow-y-auto lg:rounded-[var(--radius-sheet)] lg:border lg:border-line">
-        {children}
+      <div className="flex flex-1">
+        <aside className="hidden w-[280px] flex-none bg-sidebar lg:block">
+          <div className="sticky top-[92px] max-h-[calc(100dvh-92px)] overflow-y-auto">
+            <Perfil />
+            <Navegacao />
+          </div>
+        </aside>
+        <main className="min-w-0 flex-1">{children}</main>
       </div>
 
-      {/* menu no celular */}
       {menuAberto && (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <button className="absolute inset-0 bg-ink/30" aria-label="Fechar menu" onClick={() => setMenuAberto(false)} />
-          <div className="relative flex h-full w-[min(320px,86vw)] flex-col gap-7 overflow-y-auto bg-frame p-3 shadow-xl">
-            <div className="flex h-9 items-center justify-between">
-              <CabecalhoMarca />
-              <button
-                type="button"
-                className="grid size-9 place-items-center rounded-lg hover:bg-active"
-                onClick={() => setMenuAberto(false)}
-                aria-label="Fechar menu"
-              >
-                <X className="size-5" strokeWidth={1.75} />
-              </button>
-            </div>
+          <button className="absolute inset-0 bg-black/40" aria-label="Fechar menu" onClick={() => setMenuAberto(false)} />
+          <div className="relative h-full w-[min(300px,86vw)] overflow-y-auto bg-sidebar shadow-xl">
+            <button
+              type="button"
+              className="absolute top-2 right-2 z-10 grid size-9 place-items-center rounded text-white hover:bg-white/10"
+              onClick={() => setMenuAberto(false)}
+              aria-label="Fechar menu"
+            >
+              <X className="size-5" />
+            </button>
+            <Perfil />
             <Navegacao />
-            <div className="mt-auto">
-              <CartaoAluno />
-            </div>
           </div>
         </div>
       )}

@@ -17,7 +17,7 @@ export function LoginPage() {
     setErro(null)
     setEnviando(true)
     try {
-      await entrar(String(form.get('email')), String(form.get('senha')))
+      await entrar(String(form.get('matricula')), String(form.get('senha')))
       navegar('/simulador', { replace: true })
     } catch (err) {
       setErro(err instanceof ErroApi ? err.message : 'Não foi possível entrar agora.')
@@ -28,12 +28,12 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      <h1 className="text-[22px] font-semibold tracking-[-0.01em]">Entre na sua conta</h1>
-      <p className="mt-1.5 text-muted">Use o email e a senha que você cadastrou.</p>
+      <h1 className="text-[26px] leading-tight font-light text-titulo">Entre na sua conta</h1>
+      <p className="mt-1.5 text-muted">Use sua matrícula e a senha que você cadastrou.</p>
 
-      <form onSubmit={enviar} className="mt-8 flex flex-col gap-4" noValidate>
+      <form onSubmit={enviar} className="mt-7 flex flex-col gap-4" noValidate>
         {erro && <Aviso tom="erro">{erro}</Aviso>}
-        <Campo rotulo="Email" name="email" type="email" autoComplete="email" required autoFocus />
+        <Campo rotulo="Matrícula" name="matricula" inputMode="numeric" autoComplete="username" required autoFocus />
         <Campo rotulo="Senha" name="senha" type="password" autoComplete="current-password" required />
         <Botao type="submit" disabled={enviando} className="mt-2 h-10">
           {enviando ? 'Entrando…' : 'Entrar'}
@@ -42,7 +42,7 @@ export function LoginPage() {
 
       <p className="mt-6 text-muted">
         Ainda não tem conta?{' '}
-        <Link to="/cadastro" className="font-medium text-accent hover:underline">
+        <Link to="/cadastro" className="font-semibold text-link hover:underline">
           Cadastre-se
         </Link>
       </p>

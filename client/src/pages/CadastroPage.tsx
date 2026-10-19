@@ -48,10 +48,10 @@ export function CadastroPage() {
 
   return (
     <AuthLayout>
-      <h1 className="text-[22px] font-semibold tracking-[-0.01em]">Crie sua conta</h1>
+      <h1 className="text-[26px] leading-tight font-light text-titulo">Crie sua conta</h1>
       <p className="mt-1.5 text-muted">Seu histórico de Ciência da Computação é montado a partir do período que você informar.</p>
 
-      <form onSubmit={enviar} className="mt-8 flex flex-col gap-4" noValidate>
+      <form onSubmit={enviar} className="mt-7 flex flex-col gap-4" noValidate>
         {erro && <Aviso tom="erro">{erro}</Aviso>}
         <Campo rotulo="Nome completo" name="nome" autoComplete="name" required erro={erros.nome} autoFocus />
         <Campo rotulo="Email" name="email" type="email" autoComplete="email" required erro={erros.email} />
@@ -99,7 +99,7 @@ export function CadastroPage() {
 
       <p className="mt-6 text-muted">
         Já tem conta?{' '}
-        <Link to="/entrar" className="font-medium text-accent hover:underline">
+        <Link to="/entrar" className="font-semibold text-link hover:underline">
           Entrar
         </Link>
       </p>

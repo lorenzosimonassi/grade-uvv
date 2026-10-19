@@ -1,7 +1,7 @@
-import { RotateCcw, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useMemo } from 'react'
 import { AppShell } from '../components/AppShell'
-import { Botao } from '../components/ui'
+import { Aviso, Botao, TituloPagina } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { resumoHorarios } from '../lib/horario'
 import { ListaDisciplinas } from '../simulador/ListaDisciplinas'
@@ -13,16 +13,15 @@ function BarraCarga({ atual, limite }: { atual: number; limite: number }) {
   const razao = Math.min(atual / limite, 1)
   const cheia = atual >= limite
   return (
-    <div className="w-full sm:w-[260px]">
+    <div className="border border-borda bg-cartao px-5 py-4">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-xs text-muted">Carga semanal</p>
-        <p className="num">
-          <span className="text-[22px] leading-none font-medium">{atual}h</span>
-          <span className="text-muted"> de {limite}h</span>
+        <p className="text-[13px] text-titulo">Carga horária semanal</p>
+        <p className="num text-titulo">
+          <span className="text-2xl leading-none font-light text-link">{atual}h</span> de {limite}h
         </p>
       </div>
       <div
-        className="mt-2 h-2 overflow-hidden rounded-full bg-raised"
+        className="mt-2.5 h-2 overflow-hidden rounded-full bg-faixa"
         role="meter"
         aria-label="Carga horária semanal"
         aria-valuemin={0}
@@ -30,11 +29,11 @@ function BarraCarga({ atual, limite }: { atual: number; limite: number }) {
         aria-valuenow={atual}
       >
         <div
-          className={`h-full rounded-full transition-[width] duration-300 ${cheia ? 'bg-warning-ink' : 'bg-accent'}`}
+          className={`h-full rounded-full transition-[width] duration-300 ${cheia ? 'bg-ambar' : 'bg-acao'}`}
           style={{ width: `${razao * 100}%` }}
         />
       </div>
-      <p className="mt-1.5 text-xs text-muted">
+      <p className="mt-2 text-xs text-muted">
         {cheia ? 'Limite atingido. Remova uma disciplina para trocar.' : `Cabem mais ${limite - atual}h nesta grade.`}
       </p>
     </div>
@@ -43,13 +42,17 @@ function BarraCarga({ atual, limite }: { atual: number; limite: number }) {
 
 function Carregando() {
   return (
-    <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[400px_minmax(0,1fr)]" aria-busy="true" aria-label="Carregando">
-      <div className="flex flex-col gap-2">
-        {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="h-[62px] rounded-xl bg-raised" />
+    <div className="grid gap-10 xl:grid-cols-[minmax(380px,1fr)_minmax(520px,1.15fr)]" aria-busy="true" aria-label="Carregando">
+      <div className="flex flex-col gap-6">
+        <div className="h-12 border-b border-borda" />
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="h-[180px] animate-pulse bg-white/70" />
         ))}
       </div>
-      <div className="h-[420px] rounded-xl bg-raised" />
+      <div className="flex flex-col gap-6">
+        <div className="h-12 border-b border-borda" />
+        <div className="h-[420px] animate-pulse bg-white/70" />
+      </div>
     </div>
   )
 }
@@ -80,67 +83,59 @@ export function SimuladorPage() {
   }, [visao])
 
   return (
-    <AppShell titulo="Simulador de grade">
-      {s.erroCarga ? (
-        <div className="p-6">
-          <h1 className="text-[22px] font-semibold">Simulador de grade</h1>
-          <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
-            <p>{s.erroCarga}</p>
-            <Botao variante="secundario" onClick={s.carregar}>
-              Tentar de novo
-            </Botao>
-          </div>
-        </div>
-      ) : !visao || !derivados || !usuario ? (
-        <Carregando />
-      ) : (
-        <div className="flex flex-col gap-6 p-4 sm:p-6">
-          {/* título */}
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-[22px] font-semibold tracking-[-0.01em]">Simulador de grade</h1>
-              <p className="mt-1 text-muted">
-                Semestre {visao.semestre}, {usuario.periodoAtual}º período de {usuario.curso.nome}. {resumo}
-              </p>
+    <AppShell>
+      <div className="px-4 py-8 sm:px-8 lg:px-12 lg:py-12">
+        {s.erroCarga ? (
+          <div className="flex max-w-[760px] flex-col gap-6">
+            <TituloPagina titulo="Simulador de Grade" />
+            <div className="flex items-center justify-between gap-4 border border-borda bg-cartao px-5 py-4">
+              <p>{s.erroCarga}</p>
+              <Botao onClick={s.carregar}>Tentar de novo</Botao>
             </div>
-            <BarraCarga atual={visao.cargaAtual} limite={visao.limiteCargaHoraria} />
           </div>
+        ) : !visao || !derivados || !usuario ? (
+          <Carregando />
+        ) : (
+          <div className="grid items-start gap-10 xl:grid-cols-[minmax(380px,1fr)_minmax(520px,1.15fr)] xl:gap-12">
+            <div className="flex min-w-0 flex-col gap-4">
+              <ListaDisciplinas
+                disciplinas={visao.disciplinas}
+                periodoAtual={usuario.periodoAtual}
+                semestre={visao.semestre}
+                turmaDaDisciplina={derivados.turmaDaDisciplina}
+                estadoDe={derivados.estadoDe}
+                ocupada={s.ocupada}
+                onEscolher={s.escolher}
+                onPrevia={s.setPrevia}
+              />
+            </div>
 
-          <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)]">
-            <ListaDisciplinas
-              disciplinas={visao.disciplinas}
-              periodoAtual={usuario.periodoAtual}
-              turmaDaDisciplina={derivados.turmaDaDisciplina}
-              tom={derivados.tom}
-              estadoDe={derivados.estadoDe}
-              ocupada={s.ocupada}
-              onEscolher={s.escolher}
-              onPrevia={s.setPrevia}
-            />
+            <section aria-labelledby="titulo-semana" className="flex min-w-0 flex-col gap-6 xl:sticky xl:top-[116px]">
+              <TituloPagina titulo="Sua Semana">
+                <Botao onClick={s.limpar} disabled={s.ocupada !== null || derivados.grade.length === 0}>
+                  Limpar grade
+                </Botao>
+              </TituloPagina>
+              <h2 id="titulo-semana" className="sr-only">
+                Sua semana
+              </h2>
 
-            <section aria-labelledby="titulo-semana" className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6">
-              <div className="flex items-center justify-between gap-3">
-                <h2 id="titulo-semana" className="text-base font-semibold">
-                  Sua semana
-                </h2>
-                <p className="text-xs text-muted" aria-live="polite">
-                  {s.previa
-                    ? `Prévia: ${s.previa.disciplina.nome}, ${s.previa.turma.codigo}`
-                    : 'Passe o mouse numa turma para ver onde ela cai'}
-                </p>
-              </div>
+              <p className="-mt-2 text-[13px] text-muted">
+                Semestre {visao.semestre}, {usuario.periodoAtual}º período. {resumo}
+              </p>
 
-              <div aria-live="assertive">
+              <BarraCarga atual={visao.cargaAtual} limite={visao.limiteCargaHoraria} />
+
+              <div aria-live="assertive" className="empty:hidden">
                 {s.alerta && (
-                  <div
-                    role="alert"
-                    className="flex items-start gap-3 rounded-xl border border-negative/20 bg-negative-bg px-4 py-3 text-negative-ink"
-                  >
-                    <p className="flex-1">{s.alerta}</p>
+                  <div className="relative">
+                    <Aviso tom="erro">
+                      <span className="block pr-7">{s.alerta}</span>
+                    </Aviso>
                     <button
                       type="button"
                       onClick={s.fecharAlerta}
-                      className="grid size-6 flex-none place-items-center rounded-md hover:bg-negative/10"
+                      className="absolute top-2 right-2 grid size-6 place-items-center rounded-[2px] text-negative-ink hover:bg-negative/10"
                       aria-label="Fechar aviso"
                     >
                       <X className="size-4" />
@@ -149,45 +144,50 @@ export function SimuladorPage() {
                 )}
               </div>
 
-              <QuadroSemanal faixas={faixas} grade={derivados.grade} tom={derivados.tom} previa={s.previa} />
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-muted" aria-live="polite">
+                  {s.previa
+                    ? `Prévia: ${s.previa.disciplina.nome}, ${s.previa.turma.codigo}`
+                    : 'Passe o mouse numa turma para ver onde ela cai na semana.'}
+                </p>
+                <QuadroSemanal faixas={faixas} grade={derivados.grade} tom={derivados.tom} previa={s.previa} />
+              </div>
 
-              <div className="rounded-xl border border-line">
-                <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
-                  <h3 className="font-medium">
-                    Na sua grade <span className="num font-normal text-muted">{derivados.grade.length}</span>
-                  </h3>
-                  {derivados.grade.length > 0 && (
-                    <Botao variante="texto" className="h-8 px-2 text-muted" onClick={s.limpar} disabled={s.ocupada !== null}>
-                      <RotateCcw className="size-3.5" aria-hidden /> Limpar grade
-                    </Botao>
-                  )}
-                </div>
+              <div className="border border-borda bg-cartao">
+                <h3 className="border-b border-borda px-5 py-3 text-[15px] text-titulo">
+                  Minha grade <span className="num text-muted">({derivados.grade.length})</span>
+                </h3>
                 {derivados.grade.length === 0 ? (
-                  <p className="px-4 pb-4 text-muted">
-                    Nenhuma turma escolhida ainda. Abra uma disciplina na lista e escolha uma turma livre.
+                  <p className="px-5 py-4 text-muted">
+                    Nenhuma turma escolhida ainda. Clique numa turma livre de uma disciplina para adicioná-la.
                   </p>
                 ) : (
-                  <ul className="pb-1">
+                  <ul>
                     {derivados.grade.map((g) => {
                       const d = visao.disciplinas.find((x) => x.id === g.disciplinaId)!
                       return (
-                        <li key={g.turma.id} className="flex items-center gap-3 border-t border-rule px-4 py-2.5">
-                          <span className={`size-2 flex-none rounded-full ${TOM_PONTO[derivados.tom.get(d.id) ?? 1]}`} aria-hidden />
+                        <li key={g.turma.id} className="flex items-center gap-3 border-b border-divisor px-5 py-3.5 last:border-b-0">
+                          <span className={`size-2.5 flex-none rounded-full ${TOM_PONTO[derivados.tom.get(d.id) ?? 1]}`} aria-hidden />
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate font-medium">{d.nome}</span>
+                            <span className="block truncate text-link">{d.nome}</span>
                             <span className="num block truncate text-xs text-muted">
-                              {g.turma.codigo}, {resumoHorarios(g.turma.horarios)}, {g.turma.professor}
+                              {g.turma.codigo} · {resumoHorarios(g.turma.horarios)} · {g.turma.professor}
                             </span>
                           </span>
-                          <span className="num flex-none text-muted">{d.cargaHorariaSemanal}h</span>
-                          <Botao
-                            variante="texto"
-                            className="h-8 flex-none px-2"
+                          <span className="num flex-none text-center text-link leading-tight">
+                            {d.cargaHorariaSemanal}
+                            <span className="block text-xs">h/sem</span>
+                          </span>
+                          <button
+                            type="button"
+                            className="grid size-8 flex-none place-items-center rounded-[2px] text-muted hover:bg-negative-bg hover:text-negative-ink disabled:opacity-50"
                             onClick={() => s.remover(g.turma.id)}
                             disabled={s.ocupada !== null}
+                            aria-label={`Remover ${d.nome} da grade`}
+                            title="Remover da grade"
                           >
-                            Remover
-                          </Botao>
+                            <X className="size-4" />
+                          </button>
                         </li>
                       )
                     })}
@@ -196,8 +196,8 @@ export function SimuladorPage() {
               </div>
             </section>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </AppShell>
   )
 }

@@ -73,7 +73,8 @@ export interface RespostaAuth {
 }
 
 export const api = {
-  entrar: (email: string, senha: string) => requisicao<RespostaAuth>('POST', '/auth/login', { email, senha }),
+  entrar: (matricula: string, senha: string) =>
+    requisicao<RespostaAuth>('POST', '/auth/login', { matricula, senha }),
   cadastrar: (dados: { nome: string; email: string; matricula: string; periodoAtual: number; senha: string }) =>
     requisicao<RespostaAuth>('POST', '/auth/cadastro', dados),
   perfil: () => requisicao<Usuario>('GET', '/auth/me'),

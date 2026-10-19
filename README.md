@@ -25,16 +25,16 @@ Requisitos: Node 20+, Docker (para o Postgres).
 npm install                    # instala client e server (workspaces)
 cp server/.env.example server/.env
 npm run db:up                  # sobe o Postgres na porta 5433
-npm run db:setup               # cria as tabelas e roda o seed
+npm run db:setup               # cria as tabelas e roda o seed (com o dev parado)
 npm run dev                    # API em :3333 e front em :5173
 ```
 
 Abra http://localhost:5173.
 
-**Aluno de demonstração** (4º período, com pendências e uma disciplina travada):
+**Conta padrão** (4º período, com pendências e uma disciplina travada):
 
-- email: `demo@grade-uvv.dev`
-- senha: `grade1234`
+- matrícula: `202306209`
+- senha: `123`
 
 Ou crie uma conta: o histórico mockado é gerado a partir do período informado no cadastro.
 
@@ -70,7 +70,7 @@ server/
 | Método | Rota | |
 | --- | --- | --- |
 | POST | `/api/auth/cadastro` | nome, email, matrícula, período atual, senha |
-| POST | `/api/auth/login` | email, senha |
+| POST | `/api/auth/login` | matrícula, senha |
 | GET | `/api/auth/me` | perfil do usuário logado |
 | GET | `/api/simulador` | disciplinas visíveis, turmas, grade atual e carga |
 | PUT | `/api/simulador/turmas/:turmaId` | adiciona (ou troca) a turma; 409 em conflito, 422 em pré-requisito/limite |

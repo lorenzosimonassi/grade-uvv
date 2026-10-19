@@ -5,7 +5,7 @@ import type { Usuario } from './tipos'
 interface AuthCtx {
   usuario: Usuario | null
   carregando: boolean
-  entrar: (email: string, senha: string) => Promise<void>
+  entrar: (matricula: string, senha: string) => Promise<void>
   cadastrar: (dados: Parameters<typeof api.cadastrar>[0]) => Promise<void>
   sair: () => void
 }
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       usuario,
       carregando,
-      entrar: async (email, senha) => aplicar(await api.entrar(email, senha)),
+      entrar: async (matricula, senha) => aplicar(await api.entrar(matricula, senha)),
       cadastrar: async (dados) => aplicar(await api.cadastrar(dados)),
       sair: () => {
         definirToken(null)
