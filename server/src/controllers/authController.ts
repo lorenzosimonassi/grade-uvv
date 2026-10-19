@@ -17,7 +17,7 @@ const cadastroSchema = z.object({
 })
 
 const loginSchema = z.object({
-  email: z.email('Informe um email válido.').trim().toLowerCase(),
+  matricula: z.string().trim().min(1, 'Informe sua matrícula.'),
   senha: z.string().min(1, 'Informe sua senha.'),
 })
 
@@ -28,8 +28,8 @@ export const authController = {
   },
 
   async entrar(req: Request, res: Response) {
-    const { email, senha } = loginSchema.parse(req.body)
-    res.json(await authService.entrar(email, senha))
+    const { matricula, senha } = loginSchema.parse(req.body)
+    res.json(await authService.entrar(matricula, senha))
   },
 
   async perfil(req: Request, res: Response) {

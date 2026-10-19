@@ -8,11 +8,12 @@ import { gerarOferta } from '../src/data/oferta.js'
 const prisma = new PrismaClient()
 const SEMESTRE = process.env.SEMESTRE_ATIVO ?? '2027/1'
 
-export const ALUNO_DEMO = {
-  nome: 'Aluno Demonstração',
-  email: 'demo@grade-uvv.dev',
-  matricula: '202400001',
-  senha: 'grade1234',
+/** Conta padrão: entra com a matrícula 202306209 e a senha 123. */
+export const ALUNO_PADRAO = {
+  nome: 'Aluno Padrão',
+  email: 'aluno@grade-uvv.dev',
+  matricula: '202306209',
+  senha: '123',
   periodoAtual: 4,
 }
 
@@ -64,17 +65,15 @@ async function main() {
     })
   }
 
+  const { senha, ...aluno } = ALUNO_PADRAO
   await prisma.usuario.create({
     data: {
-      nome: ALUNO_DEMO.nome,
-      email: ALUNO_DEMO.email,
-      matricula: ALUNO_DEMO.matricula,
-      periodoAtual: ALUNO_DEMO.periodoAtual,
-      senhaHash: await bcrypt.hash(ALUNO_DEMO.senha, 10),
+      ...aluno,
+      senhaHash: await bcrypt.hash(senha, 10),
       cursoId: curso.id,
       historico: {
         createMany: {
-          data: gerarHistorico(ALUNO_DEMO.periodoAtual).map((h) => ({
+          data: gerarHistorico(aluno.periodoAtual).map((h) => ({
             disciplinaId: idPorCodigo.get(h.codigo)!,
             status: h.status,
           })),
@@ -85,7 +84,7 @@ async function main() {
 
   console.log(
     `Seed ok: ${DISCIPLINAS.length} disciplinas, ${oferta.length} turmas em ${SEMESTRE}. ` +
-      `Aluno de demonstração: ${ALUNO_DEMO.email} / ${ALUNO_DEMO.senha}`,
+      `Conta padrão: matrícula ${ALUNO_PADRAO.matricula} / senha ${ALUNO_PADRAO.senha}`,
   )
 }
 

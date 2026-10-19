@@ -59,10 +59,10 @@ export const authService = {
     return { token: emitirToken(usuario.id), usuario }
   },
 
-  async entrar(email: string, senha: string): Promise<{ token: string; usuario: UsuarioPublico }> {
-    const registro = await usuarioModel.buscarPorEmail(email)
+  async entrar(matricula: string, senha: string): Promise<{ token: string; usuario: UsuarioPublico }> {
+    const registro = await usuarioModel.buscarPorMatricula(matricula)
     const senhaConfere = registro ? await bcrypt.compare(senha, registro.senhaHash) : false
-    if (!registro || !senhaConfere) throw new ErroApp(401, 'Email ou senha incorretos.')
+    if (!registro || !senhaConfere) throw new ErroApp(401, 'Matrícula ou senha incorretas.')
 
     const usuario = (await usuarioModel.buscarPublicoPorId(registro.id))!
     return { token: emitirToken(usuario.id), usuario }

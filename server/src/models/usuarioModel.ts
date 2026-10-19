@@ -12,8 +12,8 @@ const semSenha = {
 } as const
 
 export const usuarioModel = {
-  buscarPorEmail(email: string) {
-    return prisma.usuario.findUnique({ where: { email } })
+  buscarPorMatricula(matricula: string) {
+    return prisma.usuario.findUnique({ where: { matricula } })
   },
 
   buscarPublicoPorId(id: string) {

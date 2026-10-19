@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "test": "vitest run",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy && prisma generate",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force"
   },
