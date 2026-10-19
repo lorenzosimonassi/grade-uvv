@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DiaSemana {
+  SEG
+  TER
+  QUA
+  QUI
+  SEX
+  SAB
+}
+
+enum StatusHistorico {
+  APROVADO
+  REPROVADO
+  ADIADO
+  TRANCADO
+}
+
+model Curso {
+  id          String       @id @default(cuid())
+  codigo      String       @unique
+  nome        String
+  disciplinas Disciplina[]
+  usuarios    Usuario[]
+}
+
+model Usuario {
+  id           String          @id @default(cuid())
+  nome         String
+  email        String          @unique
+  matricula    String          @unique
+  senhaHash    String
+  periodoAtual Int
+  cursoId      String
+  curso        Curso           @relation(fields: [cursoId], references: [id])
+  historico    HistoricoItem[]
+  simulacoes   Simulacao[]
+  criadoEm     DateTime        @default(now())
+}
+
+model Disciplina {
+  id                  String          @id @default(cuid())
+  codigo              String          @unique
+  nome                String
+  cargaHorariaSemanal Int
+  periodo             Int
+  cursoId             String
+  curso               Curso           @relation(fields: [cursoId], references: [id])
+  requisitos          PreRequisito[]  @relation("disciplina")
+  requisitoDe         PreRequisito[]  @relation("requisito")
+  turmas              Turma[]
+  historico           HistoricoItem[]
+}
+
+model PreRequisito {
+  disciplinaId String
+  requisitoId  String
+  disciplina   Disciplina @relation("disciplina", fields: [disciplinaId], references: [id], onDelete: Cascade)
+  requisito    Disciplina @relation("requisito", fields: [requisitoId], references: [id], onDelete: Cascade)
+
+  @@id([disciplinaId, requisitoId])
+}
+
+/// A oferta do semestre: é isto que a futura importação do arquivo de oferta vai preencher.
+model Turma {
+  id             String           @id @default(cuid())
+  codigo         String
+  disciplinaId   String
+  disciplina     Disciplina       @relation(fields: [disciplinaId], references: [id], onDelete: Cascade)
+  professor      String
+  sala           String
+  semestreLetivo String
+  horarios       HorarioAula[]
+  simulacoes     SimulacaoTurma[]
+
+  @@unique([disciplinaId, codigo, semestreLetivo])
+  @@index([semestreLetivo])
+}
+
+/// Horário em minutos desde 00:00 (ex.: 18:30 = 1110).
+model HorarioAula {
+  id        String    @id @default(cuid())
+  turmaId   String
+  turma     Turma     @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  diaSemana DiaSemana
+  inicioMin Int
+  fimMin    Int
+}
+
+model HistoricoItem {
+  usuarioId    String
+  disciplinaId String
+  status       StatusHistorico
+  usuario      Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  disciplina   Disciplina      @relation(fields: [disciplinaId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, disciplinaId])
+}
+
+model Simulacao {
+  id             String           @id @default(cuid())
+  usuarioId      String
+  usuario        Usuario          @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  semestreLetivo String
+  turmas         SimulacaoTurma[]
+  atualizadaEm   DateTime         @updatedAt
+
+  @@unique([usuarioId, semestreLetivo])
+}
+
+model SimulacaoTurma {
+  simulacaoId String
+  turmaId     String
+  simulacao   Simulacao @relation(fields: [simulacaoId], references: [id], onDelete: Cascade)
+  turma       Turma     @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+
+  @@id([simulacaoId, turmaId])
+}

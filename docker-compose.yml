@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: grade-uvv-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: grade
+      POSTGRES_PASSWORD: grade
+      POSTGRES_DB: grade_uvv
+    ports:
+      # 5433 para não conflitar com um Postgres local na 5432
+      - "5433:5432"
+    volumes:
+      - grade-uvv-data:/var/lib/postgresql/data
+
+volumes:
+  grade-uvv-data:
