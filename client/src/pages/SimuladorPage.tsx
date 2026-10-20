@@ -62,19 +62,6 @@ export function SimuladorPage() {
   const s = useSimulador()
   const { visao, derivados } = s
 
-  const { faixas, comSabado } = useMemo(() => {
-    if (!visao) return { faixas: [], comSabado: false }
-    const unicas = new Map<string, { inicioMin: number; fimMin: number }>()
-    let comSabado = false
-    for (const d of visao.disciplinas)
-      for (const t of d.turmas)
-        for (const h of t.horarios) {
-          unicas.set(`${h.inicioMin}-${h.fimMin}`, { inicioMin: h.inicioMin, fimMin: h.fimMin })
-          if (h.diaSemana === 'SAB') comSabado = true
-        }
-    return { faixas: [...unicas.values()].sort((a, b) => a.inicioMin - b.inicioMin), comSabado }
-  }, [visao])
-
   const resumo = useMemo(() => {
     if (!visao) return ''
     const pendentes = visao.disciplinas.filter((d) => d.situacao === 'PENDENTE').length
@@ -154,13 +141,7 @@ export function SimuladorPage() {
                     ? `Prévia: ${s.previa.disciplina.nome}, ${s.previa.turma.codigo}`
                     : 'Passe o mouse numa turma para ver onde ela cai na semana.'}
                 </p>
-                <QuadroSemanal
-                  faixas={faixas}
-                  comSabado={comSabado}
-                  grade={derivados.grade}
-                  tom={derivados.tom}
-                  previa={s.previa}
-                />
+<QuadroSemanal grade={derivados.grade} tom={derivados.tom} previa={s.previa} />
               </div>
 
               <div className="border border-borda bg-cartao">
@@ -181,7 +162,7 @@ export function SimuladorPage() {
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-link">{d.nome}</span>
                             <span className="num block truncate text-xs text-muted">
-                              {g.turma.codigo} · {resumoHorarios(g.turma.horarios)} · {g.turma.professor}
+                              {g.turma.codigo} · {resumoHorarios(g.turma.horarios)}
                             </span>
                           </span>
                           <span className="num flex-none text-center text-link leading-tight">

@@ -260,7 +260,7 @@ function ChipTurma({
       onFocus={() => onPrevia(true)}
       onBlur={() => onPrevia(false)}
       aria-disabled={bloqueada}
-      aria-label={`${turma.codigo}, ${resumoHorarios(turma.horarios)}, ${turma.professor}: ${acao}`}
+      aria-label={`${turma.codigo}, ${resumoHorarios(turma.horarios)}: ${acao}`}
       className={`flex min-w-0 flex-col gap-0.5 rounded-[2px] border border-l-4 px-3 py-2 text-left transition-colors ${
         estado.tipo === 'naGrade'
           ? 'border-acao bg-acao-suave'
@@ -271,12 +271,8 @@ function ChipTurma({
               : 'border-borda border-l-borda bg-chip hover:border-acao hover:bg-white'
       } ${ocupada ? 'opacity-60' : ''}`}
     >
-      <span className="num truncate text-[13px] text-ink">
-        <span className="font-bold">{turma.codigo}</span> · {resumoHorarios(turma.horarios)}
-      </span>
-      <span className="truncate text-xs text-muted">
-        {turma.professor} · {turma.sala}
-      </span>
+      <span className="num text-sm font-bold text-ink">{turma.codigo}</span>
+      <span className="num text-xs text-muted">{resumoHorarios(turma.horarios)}</span>
       <span className="mt-0.5 truncate text-xs">{status}</span>
     </button>
   )

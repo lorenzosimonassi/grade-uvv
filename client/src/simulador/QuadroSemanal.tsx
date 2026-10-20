@@ -1,115 +1,120 @@
 import { DIAS, conflitam, hora, type TurmaNaGrade } from '../lib/horario'
 import type { Dia, Horario } from '../lib/tipos'
-import { TOM_BLOCO } from './tons'
+import { TOM_PONTO } from './tons'
 import type { Previa } from './useSimulador'
 
-interface Faixa {
-  inicioMin: number
-  fimMin: number
-}
-
 interface Props {
-  faixas: Faixa[]
   grade: TurmaNaGrade[]
   tom: Map<string, number>
   previa: Previa | null
-  comSabado: boolean
 }
 
-const turno = (min: number) => (min < 12 * 60 ? 'Manhã' : min < 18 * 60 ? 'Tarde' : 'Noite')
+const NOME_COMPLETO: Record<Dia, string> = {
+  SEG: 'Segunda-Feira',
+  TER: 'Terça-Feira',
+  QUA: 'Quarta-Feira',
+  QUI: 'Quinta-Feira',
+  SEX: 'Sexta-Feira',
+  SAB: 'Sábado',
+}
 
-function ocupa(h: Horario, dia: Dia, f: Faixa) {
-  return h.diaSemana === dia && conflitam(h, { diaSemana: dia, ...f })
+interface Aula {
+  horario: Horario
+  disciplinaId: string
+  codigo: string
+  nome: string
+  tipo: 'grade' | 'previa'
+  atingida: boolean
+  substituida: boolean
 }
 
 /**
- * Quadro da semana em linhas de horário (as faixas que existem na oferta) por colunas de dia.
- * A prévia da turma sob o mouse aparece tracejada; se ela bate com algo, o bloco atingido fica marcado.
+ * Aulas de um dia, uma por linha, como no portal. A prévia da turma sob o mouse entra tracejada;
+ * se ela bate com uma aula da grade, essa aula fica marcada em vez de duplicar a linha.
  */
-export function QuadroSemanal({ faixas, grade, tom, previa, comSabado }: Props) {
-  // Sábado só aparece se a oferta tiver aula no sábado.
-  const dias = comSabado ? DIAS : DIAS.filter((d) => d.id !== 'SAB')
-  const previaEmConflito = previa?.estado.tipo === 'conflito'
+function aulasDoDia(dia: Dia, grade: TurmaNaGrade[], previa: Previa | null): Aula[] {
+  const comPrevia = previa && previa.estado.tipo !== 'naGrade' ? previa : null
 
+  const aulas: Aula[] = grade.flatMap((g) =>
+    g.turma.horarios
+      .filter((h) => h.diaSemana === dia)
+      .map((h) => ({
+        horario: h,
+        disciplinaId: g.disciplinaId,
+        codigo: g.disciplinaCodigo,
+        nome: g.disciplinaNome,
+        tipo: 'grade' as const,
+        atingida: false,
+        substituida: comPrevia?.disciplina.id === g.disciplinaId,
+      })),
+  )
+
+  if (comPrevia) {
+    for (const h of comPrevia.turma.horarios.filter((x) => x.diaSemana === dia)) {
+      const batidas = aulas.filter((a) => !a.substituida && a.tipo === 'grade' && conflitam(a.horario, h))
+      if (batidas.length > 0) batidas.forEach((a) => (a.atingida = true))
+      else
+        aulas.push({
+          horario: h,
+          disciplinaId: comPrevia.disciplina.id,
+          codigo: comPrevia.disciplina.codigo,
+          nome: comPrevia.disciplina.nome,
+          tipo: 'previa',
+          atingida: false,
+          substituida: false,
+        })
+    }
+  }
+
+  return aulas.sort((a, b) => a.horario.inicioMin - b.horario.inicioMin)
+}
+
+/** A semana em colunas por dia, cada aula de 50 minutos numa linha própria. */
+export function QuadroSemanal({ grade, tom, previa }: Props) {
   return (
-    <div className="overflow-x-auto border border-borda bg-cartao">
-      <table className="w-full min-w-[540px] table-fixed border-collapse">
-        <caption className="sr-only">Sua semana, por dia e horário</caption>
-        <colgroup>
-          <col className="w-[72px]" />
-          {dias.map((d) => (
-            <col key={d.id} />
-          ))}
-        </colgroup>
-        <thead>
-          <tr>
-            <th scope="col" className="h-10 border-b border-borda bg-chip" />
-            {dias.map((d) => (
-              <th
-                key={d.id}
-                scope="col"
-                className="h-10 border-b border-l border-borda bg-chip text-xs font-semibold text-titulo"
-              >
-                {d.curto}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {faixas.map((f, i) => {
-            const novoTurno = i === 0 || turno(faixas[i - 1].inicioMin) !== turno(f.inicioMin)
-            return (
-              <tr key={`${f.inicioMin}-${f.fimMin}`} className={novoTurno && i > 0 ? 'border-t-[6px] border-t-chip' : ''}>
-                <th scope="row" className="border-b border-divisor px-2.5 py-2 text-left align-top font-normal">
-                  {novoTurno && <span className="block text-[11px] text-muted">{turno(f.inicioMin)}</span>}
-                  <span className="num block text-xs text-ink">{hora(f.inicioMin)}</span>
-                  <span className="num block text-[11px] text-muted">{hora(f.fimMin)}</span>
-                </th>
-                {dias.map((d) => {
-                  const bloco = grade.find((g) => g.turma.horarios.some((h) => ocupa(h, d.id, f)))
-                  const previaAqui =
-                    previa && previa.estado.tipo !== 'naGrade' && previa.turma.horarios.some((h) => ocupa(h, d.id, f))
-                  const atingido = Boolean(bloco && previaAqui && previaEmConflito && bloco.disciplinaId !== previa?.disciplina.id)
-
-                  return (
-                    <td key={d.id} className="h-[72px] border-b border-l border-divisor p-1 align-top">
-                      <div className="relative h-full">
-                        {bloco && (
-                          <div
-                            className={`h-full rounded-[2px] border-l-[3px] px-2 py-1.5 transition-opacity ${TOM_BLOCO[tom.get(bloco.disciplinaId) ?? 1]} ${
-                              previaAqui && !atingido && bloco.disciplinaId === previa?.disciplina.id ? 'opacity-35' : ''
-                            } ${atingido ? 'ring-2 ring-negative ring-offset-1' : ''}`}
-                          >
-                            <p className="line-clamp-2 text-xs leading-snug font-semibold text-ink">
-                              {bloco.disciplinaNome}
-                            </p>
-                            <p className="num mt-0.5 truncate text-[11px] text-ink/70">
-                              {bloco.turma.codigo}, {bloco.turma.sala}
-                            </p>
-                          </div>
+    <div className="@container">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-5 @md:grid-cols-3 @4xl:grid-cols-6">
+        {DIAS.map((d) => {
+          const aulas = aulasDoDia(d.id, grade, previa)
+          return (
+            <section key={d.id} aria-label={NOME_COMPLETO[d.id]} className="min-w-0 self-start">
+              <h4 className="rounded-t-[3px] border border-borda bg-chip px-2 py-2.5 text-center text-sm font-semibold text-titulo">
+                {NOME_COMPLETO[d.id]}
+              </h4>
+              <ul className="mt-px rounded-b-[3px] border border-borda bg-cartao">
+                {aulas.length === 0 ? (
+                  <li className="px-2 py-3 text-center text-sm text-muted">-</li>
+                ) : (
+                  aulas.map((a) => (
+                    <li
+                      key={`${a.tipo}-${a.disciplinaId}-${a.horario.inicioMin}`}
+                      title={a.nome}
+                      className={`relative border-b border-divisor px-2 py-2.5 text-center transition-opacity last:border-b-0 ${
+                        a.tipo === 'previa' ? 'bg-acao-suave/70 outline-[1.5px] -outline-offset-4 outline-acao outline-dashed' : ''
+                      } ${a.substituida ? 'opacity-35' : ''} ${a.atingida ? 'bg-negative-bg ring-2 ring-negative ring-inset' : ''}`}
+                    >
+                      <p
+                        className={`flex items-center justify-center gap-1.5 text-sm font-bold uppercase ${
+                          a.tipo === 'previa' ? 'text-link-escuro' : 'text-ink'
+                        }`}
+                      >
+                        {a.tipo === 'grade' && (
+                          <span className={`size-2 flex-none rounded-full ${TOM_PONTO[tom.get(a.disciplinaId) ?? 1]}`} aria-hidden />
                         )}
-                        {previaAqui && !bloco && (
-                          <div className="absolute inset-0 flex flex-col justify-start rounded-[2px] border-[1.5px] border-dashed border-acao bg-acao-suave/70 px-2 py-1.5">
-                            <p className="line-clamp-2 text-xs leading-snug font-semibold text-link-escuro">
-                              {previa!.disciplina.nome}
-                            </p>
-                            <p className="num text-[11px] text-link-escuro/80">{previa!.turma.codigo}</p>
-                          </div>
-                        )}
-                        {atingido && (
-                          <span className="absolute right-1 bottom-1 rounded-[2px] bg-negative px-1.5 py-px text-[11px] font-semibold text-white">
-                            Conflito
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  )
-                })}
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+                        <span className="num truncate">{a.codigo}</span>
+                      </p>
+                      <p className="num text-[13px] text-ink/80">
+                        {hora(a.horario.inicioMin)} ~ {hora(a.horario.fimMin)}
+                      </p>
+                      {a.atingida && <p className="mt-0.5 text-[11px] font-semibold text-negative-ink">Conflito</p>}
+                    </li>
+                  ))
+                )}
+              </ul>
+            </section>
+          )
+        })}
+      </div>
     </div>
   )
 }

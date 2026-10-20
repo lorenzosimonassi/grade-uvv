@@ -41,7 +41,7 @@ export function useSimulador() {
     for (const d of visao.disciplinas) {
       for (const t of d.turmas) {
         if (selecionadas.has(t.id)) {
-          grade.push({ turma: t, disciplinaId: d.id, disciplinaNome: d.nome })
+          grade.push({ turma: t, disciplinaId: d.id, disciplinaCodigo: d.codigo, disciplinaNome: d.nome })
           turmaDaDisciplina.set(d.id, t)
         }
       }

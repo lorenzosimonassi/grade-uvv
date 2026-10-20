@@ -35,7 +35,7 @@ describe('resumoHorarios', () => {
 
 describe('preverConflito', () => {
   const ed2 = turma('T01', [{ diaSemana: 'SEG', inicioMin: 1110, fimMin: 1350 }])
-  const grade = [{ turma: ed2, disciplinaId: 'ED2', disciplinaNome: 'Estrutura de Dados II' }]
+  const grade = [{ turma: ed2, disciplinaId: 'ED2', disciplinaCodigo: 'ED2', disciplinaNome: 'Estrutura de Dados II' }]
 
   it('acha a disciplina com que a turma bate', () => {
     const c = preverConflito(turma('T01', [{ diaSemana: 'SEG', inicioMin: 1230, fimMin: 1350 }]), 'BD2', grade)

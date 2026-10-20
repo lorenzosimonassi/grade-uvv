@@ -31,6 +31,7 @@ export function conflitam(a: Horario, b: Horario): boolean {
 export interface TurmaNaGrade {
   turma: Turma
   disciplinaId: string
+  disciplinaCodigo: string
   disciplinaNome: string
 }
 
