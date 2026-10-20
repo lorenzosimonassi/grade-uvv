@@ -1,5 +1,5 @@
-import { X } from 'lucide-react'
-import { useMemo } from 'react'
+import { FileDown, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Aviso, Botao, TituloPagina } from '../components/ui'
 import { useAuth } from '../lib/auth'
@@ -61,6 +61,29 @@ export function SimuladorPage() {
   const { usuario } = useAuth()
   const s = useSimulador()
   const { visao, derivados } = s
+  const [exportando, setExportando] = useState(false)
+
+  const exportarPdf = async () => {
+    if (!visao || !derivados || !usuario) return
+    setExportando(true)
+    try {
+      // Carregado só aqui: o jsPDF é pesado e só serve para este botão.
+      const { exportarGradePdf } = await import('../simulador/exportarPdf')
+      await exportarGradePdf({
+        usuario,
+        semestre: visao.semestre,
+        grade: derivados.grade,
+        tom: derivados.tom,
+        cargaDe: (id) => visao.disciplinas.find((d) => d.id === id)?.cargaHorariaSemanal ?? 0,
+        cargaAtual: visao.cargaAtual,
+        limite: visao.limiteCargaHoraria,
+      })
+    } catch {
+      s.mostrarAlerta('Não foi possível gerar o PDF.')
+    } finally {
+      setExportando(false)
+    }
+  }
 
   const resumo = useMemo(() => {
     if (!visao) return ''
@@ -103,9 +126,19 @@ export function SimuladorPage() {
 
             <section aria-labelledby="titulo-semana" className="flex min-w-0 flex-col gap-6 xl:sticky xl:top-[116px]">
               <TituloPagina titulo="Sua Semana">
-                <Botao onClick={s.limpar} disabled={s.ocupada !== null || derivados.grade.length === 0}>
-                  Limpar grade
-                </Botao>
+                <div className="flex gap-2">
+                  <Botao
+                    variante="secundario"
+                    onClick={exportarPdf}
+                    disabled={exportando || s.ocupada !== null || derivados.grade.length === 0}
+                  >
+                    <FileDown className="size-4" aria-hidden />
+                    {exportando ? 'Gerando…' : 'Exportar PDF'}
+                  </Botao>
+                  <Botao onClick={s.limpar} disabled={s.ocupada !== null || derivados.grade.length === 0}>
+                    Limpar grade
+                  </Botao>
+                </div>
               </TituloPagina>
               <h2 id="titulo-semana" className="sr-only">
                 Sua semana

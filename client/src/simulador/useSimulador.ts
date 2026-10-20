@@ -125,6 +125,7 @@ export function useSimulador() {
     erroCarga,
     carregar,
     alerta,
+    mostrarAlerta: setAlerta,
     fecharAlerta: () => setAlerta(null),
     ocupada,
     previa,
