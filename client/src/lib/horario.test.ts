@@ -14,6 +14,15 @@ describe('resumoHorarios', () => {
     ).toBe('Seg 18:30–22:30')
   })
 
+  it('junta aulas separadas pelo intervalo', () => {
+    expect(
+      resumoHorarios([
+        { diaSemana: 'TER', inicioMin: 485, fimMin: 535 },
+        { diaSemana: 'TER', inicioMin: 555, fimMin: 605 },
+      ]),
+    ).toBe('Ter 08:05–10:05')
+  })
+
   it('agrupa dias com o mesmo horário', () => {
     expect(
       resumoHorarios([

@@ -62,13 +62,17 @@ export function SimuladorPage() {
   const s = useSimulador()
   const { visao, derivados } = s
 
-  const faixas = useMemo(() => {
-    if (!visao) return []
+  const { faixas, comSabado } = useMemo(() => {
+    if (!visao) return { faixas: [], comSabado: false }
     const unicas = new Map<string, { inicioMin: number; fimMin: number }>()
+    let comSabado = false
     for (const d of visao.disciplinas)
       for (const t of d.turmas)
-        for (const h of t.horarios) unicas.set(`${h.inicioMin}-${h.fimMin}`, { inicioMin: h.inicioMin, fimMin: h.fimMin })
-    return [...unicas.values()].sort((a, b) => a.inicioMin - b.inicioMin)
+        for (const h of t.horarios) {
+          unicas.set(`${h.inicioMin}-${h.fimMin}`, { inicioMin: h.inicioMin, fimMin: h.fimMin })
+          if (h.diaSemana === 'SAB') comSabado = true
+        }
+    return { faixas: [...unicas.values()].sort((a, b) => a.inicioMin - b.inicioMin), comSabado }
   }, [visao])
 
   const resumo = useMemo(() => {
@@ -150,7 +154,13 @@ export function SimuladorPage() {
                     ? `Prévia: ${s.previa.disciplina.nome}, ${s.previa.turma.codigo}`
                     : 'Passe o mouse numa turma para ver onde ela cai na semana.'}
                 </p>
-                <QuadroSemanal faixas={faixas} grade={derivados.grade} tom={derivados.tom} previa={s.previa} />
+                <QuadroSemanal
+                  faixas={faixas}
+                  comSabado={comSabado}
+                  grade={derivados.grade}
+                  tom={derivados.tom}
+                  previa={s.previa}
+                />
               </div>
 
               <div className="border border-borda bg-cartao">

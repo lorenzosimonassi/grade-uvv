@@ -1,33 +1,9 @@
 import { ChevronDown } from 'lucide-react'
 import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
 
-/** Selo redondo (azul com aro dourado) usado na marca e no favicon. */
-export function Selo({ className = 'size-12' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-      <circle cx="24" cy="24" r="23" fill="#c9a227" />
-      <circle cx="24" cy="24" r="20" fill="var(--color-marinho)" />
-      <circle cx="24" cy="24" r="17.5" fill="none" stroke="#c9a227" strokeWidth=".8" strokeDasharray="1.2 1.6" />
-      <rect x="15" y="15" width="8" height="8" rx="1.2" fill="#fff" />
-      <rect x="25" y="15" width="8" height="8" rx="1.2" fill="#fff" opacity=".5" />
-      <rect x="15" y="25" width="8" height="8" rx="1.2" fill="#fff" opacity=".5" />
-      <rect x="25" y="25" width="8" height="8" rx="1.2" fill="#c9a227" />
-    </svg>
-  )
-}
-
-/** Marca do topo: selo + nome da universidade em versalete serifado. */
+/** Logo oficial da UVV, no topo da coluna da sidebar. */
 export function Marca() {
-  return (
-    <span className="flex items-center gap-2.5 text-marinho">
-      <Selo />
-      <span className="hidden leading-none sm:block" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
-        <span className="block text-[9px] tracking-[0.32em]">UNIVERSIDADE</span>
-        <span className="block text-[19px] tracking-[0.02em]">VILA VELHA</span>
-        <span className="mt-0.5 block text-[7px] tracking-[0.3em] text-muted">ESPÍRITO SANTO</span>
-      </span>
-    </span>
-  )
+  return <img src="/imgs/logo-uvv.png" alt="Universidade Vila Velha" width={168} height={54} className="h-11 w-auto lg:h-[54px]" />
 }
 
 /** Título de página no estilo do portal: fonte leve, controle à direita e linha embaixo. */

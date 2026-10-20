@@ -64,6 +64,10 @@ function Perfil() {
       <p className="text-[13px] leading-snug">
         {usuario.curso.nome} - {usuario.periodoAtual}º período
       </p>
+      <p className="num text-[13px] text-[#8fc3f0]">
+        Turma {usuario.curso.codigo}
+        {usuario.periodoAtual}
+      </p>
     </div>
   )
 }

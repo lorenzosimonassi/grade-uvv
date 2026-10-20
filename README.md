@@ -7,6 +7,8 @@ Projeto acadêmico, com dados mockados do curso de Ciência da Computação.
 - Disciplinas pendentes (reprovadas ou adiadas) aparecem junto com as do período.
 - Disciplina com pré-requisito não cumprido aparece travada, dizendo o que falta.
 - Limite de carga horária semanal (padrão 24h).
+- Turmas no padrão da UVV: `CC4M` (4º período, matutino), `CC6N` (6º, noturno). O aluno é do `CC4` e escolhe, na montagem, se vai de manhã ou à noite; nos primeiros períodos a turma é dividida (`CC1M` e `CC1Mb`).
+- Aulas de 50 minutos. Manhã: 07:15, 08:05, 09:15, 10:05 e 11:05 (até 5 aulas por dia). Noite: a partir das 18:30 (horário a confirmar).
 
 O design completo está em [`docs/superpowers/specs/2026-10-19-grade-uvv-design.md`](docs/superpowers/specs/2026-10-19-grade-uvv-design.md).
 

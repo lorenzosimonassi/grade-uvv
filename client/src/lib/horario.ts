@@ -15,6 +15,9 @@ export const DIAS: { id: Dia; curto: string; nome: string }[] = [
 const nomeDia = (dia: Dia) => DIAS.find((d) => d.id === dia)!.nome
 const curtoDia = (dia: Dia) => DIAS.find((d) => d.id === dia)!.curto
 
+/** Aulas separadas por até isso (o intervalo da UVV) contam como seguidas. */
+const INTERVALO_MAX = 20
+
 export function hora(min: number): string {
   const h = Math.floor(min / 60)
   const m = min % 60
@@ -66,8 +69,8 @@ export function mensagemConflito(codigoTurma: string, disciplina: string, c: Con
 }
 
 /**
- * Resumo legível dos horários: junta blocos seguidos do mesmo dia
- * ("Seg 18:30–22:30") e dias com o mesmo horário ("Seg e Qua 07:30–09:30").
+ * Resumo legível dos horários: junta aulas seguidas do mesmo dia, mesmo com o intervalo no meio
+ * ("Seg 07:15–08:55") e dias com o mesmo horário ("Seg e Qua 07:15–08:55").
  */
 export function resumoHorarios(horarios: Horario[]): string {
   const porDia = new Map<Dia, Horario[]>()
@@ -78,7 +81,7 @@ export function resumoHorarios(horarios: Horario[]): string {
     const doDia = (porDia.get(d.id) ?? []).sort((a, b) => a.inicioMin - b.inicioMin)
     for (const h of doDia) {
       const ultima = faixas.at(-1)
-      if (ultima && ultima.dia === d.id && ultima.fim >= h.inicioMin - 10) ultima.fim = Math.max(ultima.fim, h.fimMin)
+      if (ultima && ultima.dia === d.id && ultima.fim >= h.inicioMin - INTERVALO_MAX) ultima.fim = Math.max(ultima.fim, h.fimMin)
       else faixas.push({ dia: d.id, inicio: h.inicioMin, fim: h.fimMin })
     }
   }

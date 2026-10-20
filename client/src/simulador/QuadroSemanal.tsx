@@ -13,6 +13,7 @@ interface Props {
   grade: TurmaNaGrade[]
   tom: Map<string, number>
   previa: Previa | null
+  comSabado: boolean
 }
 
 const turno = (min: number) => (min < 12 * 60 ? 'Manhã' : min < 18 * 60 ? 'Tarde' : 'Noite')
@@ -25,9 +26,9 @@ function ocupa(h: Horario, dia: Dia, f: Faixa) {
  * Quadro da semana em linhas de horário (as faixas que existem na oferta) por colunas de dia.
  * A prévia da turma sob o mouse aparece tracejada; se ela bate com algo, o bloco atingido fica marcado.
  */
-export function QuadroSemanal({ faixas, grade, tom, previa }: Props) {
-  // Sábado fica sempre visível: a oferta tem turmas de sábado.
-  const dias = DIAS
+export function QuadroSemanal({ faixas, grade, tom, previa, comSabado }: Props) {
+  // Sábado só aparece se a oferta tiver aula no sábado.
+  const dias = comSabado ? DIAS : DIAS.filter((d) => d.id !== 'SAB')
   const previaEmConflito = previa?.estado.tipo === 'conflito'
 
   return (

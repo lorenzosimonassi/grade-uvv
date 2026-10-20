@@ -85,7 +85,7 @@ No MVC deste projeto, a "View" é o client React consumindo a API JSON. O server
 - **Curso**: id, nome, codigo.
 - **Disciplina**: id, codigo, nome, cargaHorariaSemanal, periodo (período ideal na matriz), cursoId.
 - **PreRequisito**: disciplinaId → requisitoId (uma disciplina pode ter vários).
-- **Turma**: id, codigo (T01...), disciplinaId, professor, sala, semestreLetivo (ex.: "2027/1").
+- **Turma**: id, codigo no padrão da UVV (CC4M = 4º período matutino, CC6N = 6º noturno; nos primeiros períodos a turma é dividida, ex.: CC1M e CC1Mb), disciplinaId, professor, sala, semestreLetivo (ex.: "2027/1").
 - **HorarioAula**: id, turmaId, diaSemana (seg–sáb), horaInicio, horaFim (uma turma tem vários).
 - **HistoricoItem**: usuarioId, disciplinaId, status (`APROVADO` | `REPROVADO` | `ADIADO` | `TRANCADO`).
 - **Simulacao**: id, usuarioId, semestreLetivo. Contém as **SimulacaoTurma** (simulacaoId, turmaId).
@@ -124,7 +124,7 @@ O mockup aprovado está em `.superpowers/brainstorm/.../content/layout-v2.html`.
 - **Sidebar escura** à esquerda, imitando o portal: itens desabilitados, "Simulador de grade" ativo, cartão do aluno no rodapé (nome, curso, período).
 - **Topo:** título, semestre letivo e barra de carga horária ("16h de 24h").
 - **Coluna esquerda (lista):** busca, filtros (Todas, Do período, Pendentes, Na grade), grupo "Pendentes" no topo com marcação âmbar e, em seguida, o grupo do período atual. Cada disciplina mostra carga, número de turmas e status (na grade / escolher / bloqueada). Ao abrir, ela expande as turmas com o status de conflito de cada uma.
-- **Coluna direita:** quadro semanal de segunda a sábado, com blocos coloridos por disciplina, prévia tracejada no hover e a mensagem de bloqueio quando aparece.
+- **Coluna direita:** quadro semanal de segunda a sexta (sábado só aparece se a oferta tiver aula no sábado), com blocos coloridos por disciplina, prévia tracejada no hover e a mensagem de bloqueio quando aparece.
 - **Visual:** limpo, com respiro e hierarquia clara. As cores do mockup são provisórias.
 
 ## 10. Deixado para quem for construir
