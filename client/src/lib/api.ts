@@ -83,4 +83,9 @@ export const api = {
   adicionarTurma: (turmaId: string) => requisicao<VisaoSimulador>('PUT', `/simulador/turmas/${turmaId}`),
   removerTurma: (turmaId: string) => requisicao<VisaoSimulador>('DELETE', `/simulador/turmas/${turmaId}`),
   limparGrade: () => requisicao<VisaoSimulador>('DELETE', '/simulador/turmas'),
+  solicitarSecretaria: (turmaId: string, mensagem: string) =>
+    requisicao<{ protocolo: string; criadoEm: string; conflito: string }>('POST', '/simulador/solicitacoes', {
+      turmaId,
+      mensagem,
+    }),
 }

@@ -42,6 +42,7 @@ model Usuario {
   curso        Curso           @relation(fields: [cursoId], references: [id])
   historico    HistoricoItem[]
   simulacoes   Simulacao[]
+  solicitacoes SolicitacaoSecretaria[]
   criadoEm     DateTime        @default(now())
 }
 
@@ -79,6 +80,7 @@ model Turma {
   semestreLetivo String
   horarios       HorarioAula[]
   simulacoes     SimulacaoTurma[]
+  solicitacoes   SolicitacaoSecretaria[]
 
   @@unique([disciplinaId, codigo, semestreLetivo])
   @@index([semestreLetivo])
@@ -122,4 +124,23 @@ model SimulacaoTurma {
   turma       Turma     @relation(fields: [turmaId], references: [id], onDelete: Cascade)
 
   @@id([simulacaoId, turmaId])
+}
+
+/// Pedido do aluno à secretaria online quando a turma que ele quer bate com outra da grade.
+model SolicitacaoSecretaria {
+  id             String   @id @default(cuid())
+  usuarioId      String
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  semestreLetivo String
+  /// A turma que o aluno não conseguiu colocar na grade.
+  turmaId        String
+  turma          Turma    @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  /// Descrição do conflito montada pelo servidor, para não depender do texto do aluno.
+  conflito       String
+  mensagem       String
+  /// Códigos das turmas na grade no momento do envio, a "print" do quadro.
+  gradeTurmaIds  String[]
+  criadoEm       DateTime @default(now())
+
+  @@index([usuarioId, semestreLetivo])
 }

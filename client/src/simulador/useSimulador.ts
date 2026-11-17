@@ -15,12 +15,25 @@ export interface Previa {
   estado: EstadoTurma
 }
 
+/** A última tentativa barrada por conflito, para poder levar o caso à secretaria. */
+export interface TentativaConflito {
+  turma: Turma
+  disciplina: Disciplina
+  conflito: ConflitoPrevisto
+}
+
 export function useSimulador() {
   const [visao, setVisao] = useState<VisaoSimulador | null>(null)
   const [erroCarga, setErroCarga] = useState<string | null>(null)
   const [alerta, setAlerta] = useState<string | null>(null)
   const [ocupada, setOcupada] = useState<string | null>(null)
   const [previa, setPrevia] = useState<Previa | null>(null)
+  const [tentativa, setTentativa] = useState<TentativaConflito | null>(null)
+
+  const mostrarAlerta = useCallback((texto: string | null) => {
+    setAlerta(texto)
+    setTentativa(null)
+  }, [])
 
   const carregar = useCallback(() => {
     setErroCarga(null)
@@ -71,29 +84,30 @@ export function useSimulador() {
       // Bloqueio imediato no front; a API repete as mesmas verificações.
       if (estado.tipo === 'conflito') {
         setAlerta(`Não dá para adicionar. ${mensagemConflito(turma.codigo, disciplina.nome, estado.conflito)}`)
+        setTentativa({ turma, disciplina, conflito: estado.conflito })
         return
       }
       if (estado.tipo === 'limite' && visao) {
-        setAlerta(
+        mostrarAlerta(
           `Não dá para adicionar. Com ${disciplina.nome} sua grade teria ${estado.cargaFinal}h semanais, acima do limite de ${visao.limiteCargaHoraria}h.`,
         )
         return
       }
 
       setOcupada(turma.id)
-      setAlerta(null)
+      mostrarAlerta(null)
       try {
         setVisao(
           estado.tipo === 'naGrade' ? await api.removerTurma(turma.id) : await api.adicionarTurma(turma.id),
         )
         setPrevia(null)
       } catch (e) {
-        setAlerta(e instanceof ErroApi ? e.message : 'Não foi possível salvar a alteração.')
+        mostrarAlerta(e instanceof ErroApi ? e.message : 'Não foi possível salvar a alteração.')
       } finally {
         setOcupada(null)
       }
     },
-    [derivados, ocupada, visao],
+    [derivados, ocupada, visao, mostrarAlerta],
   )
 
   const remover = useCallback(async (turmaId: string) => {
@@ -101,23 +115,23 @@ export function useSimulador() {
     try {
       setVisao(await api.removerTurma(turmaId))
     } catch (e) {
-      setAlerta(e instanceof ErroApi ? e.message : 'Não foi possível remover a turma.')
+      mostrarAlerta(e instanceof ErroApi ? e.message : 'Não foi possível remover a turma.')
     } finally {
       setOcupada(null)
     }
-  }, [])
+  }, [mostrarAlerta])
 
   const limpar = useCallback(async () => {
     setOcupada('todas')
     try {
       setVisao(await api.limparGrade())
-      setAlerta(null)
+      mostrarAlerta(null)
     } catch (e) {
-      setAlerta(e instanceof ErroApi ? e.message : 'Não foi possível limpar a grade.')
+      mostrarAlerta(e instanceof ErroApi ? e.message : 'Não foi possível limpar a grade.')
     } finally {
       setOcupada(null)
     }
-  }, [])
+  }, [mostrarAlerta])
 
   return {
     visao,
@@ -125,8 +139,9 @@ export function useSimulador() {
     erroCarga,
     carregar,
     alerta,
-    mostrarAlerta: setAlerta,
-    fecharAlerta: () => setAlerta(null),
+    mostrarAlerta,
+    fecharAlerta: () => mostrarAlerta(null),
+    tentativa,
     ocupada,
     previa,
     setPrevia,

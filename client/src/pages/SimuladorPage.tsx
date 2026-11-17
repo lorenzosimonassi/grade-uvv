@@ -1,10 +1,11 @@
-import { FileDown, X } from 'lucide-react'
+import { FileDown, Send, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Aviso, Botao, TituloPagina } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { resumoHorarios } from '../lib/horario'
 import { ListaDisciplinas } from '../simulador/ListaDisciplinas'
+import { ModalSecretaria } from '../simulador/ModalSecretaria'
 import { QuadroSemanal } from '../simulador/QuadroSemanal'
 import { TOM_PONTO } from '../simulador/tons'
 import { useSimulador } from '../simulador/useSimulador'
@@ -62,6 +63,11 @@ export function SimuladorPage() {
   const s = useSimulador()
   const { visao, derivados } = s
   const [exportando, setExportando] = useState(false)
+  const [secretariaAberta, setSecretariaAberta] = useState(false)
+
+  // Só oferece a secretaria enquanto o conflito ainda existe na grade de agora.
+  const tentativa =
+    s.tentativa && derivados?.estadoDe(s.tentativa.turma, s.tentativa.disciplina).tipo === 'conflito' ? s.tentativa : null
 
   const exportarPdf = async () => {
     if (!visao || !derivados || !usuario) return
@@ -155,6 +161,15 @@ export function SimuladorPage() {
                   <div className="relative">
                     <Aviso tom="erro">
                       <span className="block pr-7">{s.alerta}</span>
+                      {tentativa && (
+                        <span className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+                          <Botao variante="secundario" className="h-8" onClick={() => setSecretariaAberta(true)}>
+                            <Send className="size-4" aria-hidden />
+                            Enviar para a secretaria online
+                          </Botao>
+                          <span className="text-xs">Peça uma troca de turma mostrando o seu quadro.</span>
+                        </span>
+                      )}
                     </Aviso>
                     <button
                       type="button"
@@ -219,6 +234,23 @@ export function SimuladorPage() {
                 )}
               </div>
             </section>
+
+            {tentativa && (
+              <ModalSecretaria
+                aberto={secretariaAberta}
+                onFechar={() => setSecretariaAberta(false)}
+                tentativa={tentativa}
+                usuario={usuario}
+                semestre={visao.semestre}
+                grade={derivados.grade}
+                tom={derivados.tom}
+                estadoDe={derivados.estadoDe}
+                onUsarTurma={(t, d) => {
+                  setSecretariaAberta(false)
+                  s.escolher(t, d)
+                }}
+              />
+            )}
           </div>
         )}
       </div>

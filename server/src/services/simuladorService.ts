@@ -3,6 +3,7 @@ import { ErroApp } from '../lib/erros.js'
 import { disciplinaModel, type DisciplinaComOferta } from '../models/disciplinaModel.js'
 import { historicoModel } from '../models/historicoModel.js'
 import { simulacaoModel } from '../models/simulacaoModel.js'
+import { solicitacaoModel } from '../models/solicitacaoModel.js'
 import { usuarioModel } from '../models/usuarioModel.js'
 import {
   aprovadas,
@@ -42,6 +43,19 @@ const paraRegra = (d: DisciplinaComOferta): DisciplinaRegra => ({
 })
 
 type Contexto = Awaited<ReturnType<typeof carregarContexto>>
+
+/** Texto do conflito entre a turma e a grade atual, ou null se ela cabe. */
+function descreverConflito(ctx: Contexto, turmaId: string): string | null {
+  const disciplina = ctx.disciplinas.find((d) => d.turmas.some((t) => t.id === turmaId))
+  if (!disciplina) return null
+  const turma = disciplina.turmas.find((t) => t.id === turmaId)!
+  const conflito = encontrarConflito({ id: turma.id, disciplinaId: disciplina.id, horarios: turma.horarios }, ctx.grade)
+  if (!conflito) return null
+  const outra = ctx.disciplinaPorId.get(conflito.turma.disciplinaId)
+  const turmaOutra = outra?.turmas.find((t) => t.id === conflito.turma.id)
+  const { diaSemana, inicioMin, fimMin } = conflito.horario
+  return `A ${turma.codigo} de ${disciplina.nome} bate com ${turmaOutra ? `a ${turmaOutra.codigo} de ` : ''}${outra?.nome ?? 'outra disciplina'} na ${nomeDia(diaSemana)}, das ${formatarHora(inicioMin)} às ${formatarHora(fimMin)}.`
+}
 
 function montarVisao(ctx: Contexto) {
   const { usuario, disciplinas, aprovadasIds, statusPorDisciplina, disciplinaPorId, simulacao, grade } = ctx
@@ -113,16 +127,8 @@ export const simuladorService = {
       throw new ErroApp(422, `${disciplina.nome} exige ${nomes}, que você ainda não concluiu.`, 'PRE_REQUISITO')
     }
 
-    const conflito = encontrarConflito(candidata, ctx.grade)
-    if (conflito) {
-      const outra = ctx.disciplinaPorId.get(conflito.turma.disciplinaId)
-      const { diaSemana, inicioMin, fimMin } = conflito.horario
-      throw new ErroApp(
-        409,
-        `A ${turma.codigo} de ${disciplina.nome} bate com ${outra?.nome ?? 'outra disciplina'} na ${nomeDia(diaSemana)}, das ${formatarHora(inicioMin)} às ${formatarHora(fimMin)}.`,
-        'CONFLITO',
-      )
-    }
+    const conflito = descreverConflito(ctx, turmaId)
+    if (conflito) throw new ErroApp(409, conflito, 'CONFLITO')
 
     const cargas = new Map(ctx.disciplinas.map((d) => [d.id, d.cargaHorariaSemanal]))
     const novaCarga = cargaComCandidata(candidata, ctx.grade, cargas)
@@ -143,6 +149,28 @@ export const simuladorService = {
     const ctx = await carregarContexto(usuarioId)
     await simulacaoModel.removerTurma(ctx.simulacao.id, turmaId)
     return this.obter(usuarioId)
+  },
+
+  /** Registra o pedido à secretaria. Só aceita turmas que de fato conflitam com a grade de agora. */
+  async solicitarSecretaria(usuarioId: string, turmaId: string, mensagem: string) {
+    const ctx = await carregarContexto(usuarioId)
+    if (!ctx.disciplinas.some((d) => d.turmas.some((t) => t.id === turmaId))) {
+      throw new ErroApp(404, 'Essa turma não é ofertada neste semestre.')
+    }
+    const conflito = descreverConflito(ctx, turmaId)
+    if (!conflito) {
+      throw new ErroApp(422, 'Essa turma não tem mais conflito com a sua grade. Você já pode adicioná-la.', 'SEM_CONFLITO')
+    }
+
+    const criada = await solicitacaoModel.criar({
+      usuarioId,
+      semestreLetivo: env.semestreAtivo,
+      turmaId,
+      conflito,
+      mensagem,
+      gradeTurmaIds: ctx.grade.map((t) => t.id),
+    })
+    return { protocolo: criada.id, criadoEm: criada.criadoEm, conflito }
   },
 
   async limpar(usuarioId: string) {
