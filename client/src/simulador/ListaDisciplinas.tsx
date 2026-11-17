@@ -1,66 +1,93 @@
-import { AlertTriangle, CalendarCheck, CalendarPlus, CalendarX, Check, Lock, Search, type LucideIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { SelecaoCompacta, TituloPagina } from '../components/ui'
-import { resumoHorarios } from '../lib/horario'
-import type { Disciplina, Turma } from '../lib/tipos'
-import type { EstadoTurma, Previa } from './useSimulador'
+import {
+  AlertTriangle,
+  CalendarCheck,
+  CalendarPlus,
+  CalendarX,
+  Check,
+  FileUp,
+  Lock,
+  Search,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Aviso, Botao, SelecaoCompacta, TituloPagina } from "../components/ui";
+import { resumoHorarios } from "../lib/horario";
+import type { Disciplina, Turma } from "../lib/tipos";
+import type { EstadoTurma, Previa } from "./useSimulador";
 
-type Filtro = 'todas' | 'pendentes' | 'periodo' | 'naGrade'
+type Filtro = "todas" | "pendentes" | "periodo" | "naGrade";
 
 interface Props {
-  disciplinas: Disciplina[]
-  periodoAtual: number
-  semestre: string
-  turmaDaDisciplina: Map<string, Turma>
-  estadoDe: (t: Turma, d: Disciplina) => EstadoTurma
-  ocupada: string | null
-  onEscolher: (t: Turma, d: Disciplina) => void
-  onPrevia: (p: Previa | null) => void
+  disciplinas: Disciplina[];
+  periodoAtual: number;
+  semestre: string;
+  turmaDaDisciplina: Map<string, Turma>;
+  estadoDe: (t: Turma, d: Disciplina) => EstadoTurma;
+  ocupada: string | null;
+  onEscolher: (t: Turma, d: Disciplina) => void;
+  onPrevia: (p: Previa | null) => void;
 }
 
 const normalizar = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
+  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 const MOTIVO: Record<string, string> = {
-  REPROVADO: 'Reprovada',
-  ADIADO: 'Adiada',
-  TRANCADO: 'Trancada',
-}
+  REPROVADO: "Reprovada",
+  ADIADO: "Adiada",
+  TRANCADO: "Trancada",
+};
 
 export function ListaDisciplinas(props: Props) {
-  const { disciplinas, periodoAtual, semestre, turmaDaDisciplina } = props
-  const [busca, setBusca] = useState('')
-  const [filtro, setFiltro] = useState<Filtro>('todas')
+  const { disciplinas, periodoAtual, semestre, turmaDaDisciplina } = props;
+  const [busca, setBusca] = useState("");
+  const [filtro, setFiltro] = useState<Filtro>("todas");
+  const entradaArquivo = useRef<HTMLInputElement>(null);
+  const [arquivoImportado, setArquivoImportado] = useState<string | null>(null);
+
+  // Opcional: o arquivo de disciplinas (matérias e turmas do período) viria do professor,
+  // mas o formato nunca foi definido. Por ora o botão só aceita o arquivo e avisa.
+  const aoEscolherArquivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const arquivo = e.target.files?.[0];
+    e.target.value = "";
+    if (arquivo) setArquivoImportado(arquivo.name);
+  };
 
   const contagem = useMemo(
     () => ({
       todas: disciplinas.length,
-      pendentes: disciplinas.filter((d) => d.situacao === 'PENDENTE').length,
-      periodo: disciplinas.filter((d) => d.situacao === 'PERIODO').length,
+      pendentes: disciplinas.filter((d) => d.situacao === "PENDENTE").length,
+      periodo: disciplinas.filter((d) => d.situacao === "PERIODO").length,
       naGrade: disciplinas.filter((d) => turmaDaDisciplina.has(d.id)).length,
     }),
     [disciplinas, turmaDaDisciplina],
-  )
+  );
 
   const visiveis = disciplinas.filter((d) => {
-    if (filtro === 'pendentes' && d.situacao !== 'PENDENTE') return false
-    if (filtro === 'periodo' && d.situacao !== 'PERIODO') return false
-    if (filtro === 'naGrade' && !turmaDaDisciplina.has(d.id)) return false
-    if (busca && !normalizar(`${d.nome} ${d.codigo}`).includes(normalizar(busca))) return false
-    return true
-  })
+    if (filtro === "pendentes" && d.situacao !== "PENDENTE") return false;
+    if (filtro === "periodo" && d.situacao !== "PERIODO") return false;
+    if (filtro === "naGrade" && !turmaDaDisciplina.has(d.id)) return false;
+    if (
+      busca &&
+      !normalizar(`${d.nome} ${d.codigo}`).includes(normalizar(busca))
+    )
+      return false;
+    return true;
+  });
 
-  const pendentes = visiveis.filter((d) => d.situacao === 'PENDENTE')
-  const doPeriodo = visiveis.filter((d) => d.situacao === 'PERIODO')
+  const pendentes = visiveis.filter((d) => d.situacao === "PENDENTE");
+  const doPeriodo = visiveis.filter((d) => d.situacao === "PERIODO");
 
   return (
     <section aria-label="Disciplinas" className="flex min-w-0 flex-col gap-6">
       <TituloPagina titulo="Minhas Disciplinas">
         <div className="flex w-full gap-2 sm:w-auto">
-          <SelecaoCompacta rotulo="Semestre" value={semestre} disabled className="w-[110px] flex-none">
+          <SelecaoCompacta
+            rotulo="Semestre"
+            value={semestre}
+            disabled
+            className="w-[110px] flex-none"
+          >
             <option>{semestre}</option>
           </SelecaoCompacta>
           <SelecaoCompacta
@@ -77,21 +104,64 @@ export function ListaDisciplinas(props: Props) {
         </div>
       </TituloPagina>
 
-      <label className="relative block">
-        <span className="sr-only">Buscar disciplina</span>
-        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" aria-hidden />
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <label className="relative block min-w-0 flex-1">
+          <span className="sr-only">Buscar disciplina</span>
+          <Search
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted"
+            aria-hidden
+          />
+          <input
+            type="search"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nome ou código"
+            className="h-10 w-full rounded-[3px] border border-borda bg-white pr-3 pl-9 text-sm outline-none placeholder:text-muted/80 focus:border-acao focus:ring-3 focus:ring-acao/20"
+          />
+        </label>
+        <Botao
+          variante="secundario"
+          className="h-10 flex-none"
+          onClick={() => entradaArquivo.current?.click()}
+          title="Opcional: gera as matérias e turmas do período a partir de um arquivo"
+        >
+          <FileUp className="size-4" aria-hidden />
+          Importar oferta de disciplina
+        </Botao>
         <input
-          type="search"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar por nome ou código"
-          className="h-10 w-full rounded-[3px] border border-borda bg-white pr-3 pl-9 text-sm outline-none placeholder:text-muted/80 focus:border-acao focus:ring-3 focus:ring-acao/20"
+          ref={entradaArquivo}
+          type="file"
+          accept=".csv,.xlsx,.xls,.json"
+          className="hidden"
+          onChange={aoEscolherArquivo}
         />
-      </label>
+      </div>
+
+      {arquivoImportado && (
+        <div className="relative">
+          <Aviso tom="info">
+            <span className="block pr-7">
+              A importação de “{arquivoImportado}” ainda não está disponível. As
+              disciplinas e turmas do semestre {semestre} continuam vindo da
+              oferta cadastrada.
+            </span>
+          </Aviso>
+          <button
+            type="button"
+            onClick={() => setArquivoImportado(null)}
+            className="absolute top-2 right-2 grid size-6 place-items-center rounded-[2px] text-warning-ink hover:bg-ambar/10"
+            aria-label="Fechar aviso"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
 
       {visiveis.length === 0 && (
         <p className="rounded-[3px] border border-dashed border-borda bg-white/60 px-5 py-4 text-muted">
-          {busca ? `Nenhuma disciplina encontrada para “${busca}”.` : 'Nenhuma disciplina neste filtro.'}
+          {busca
+            ? `Nenhuma disciplina encontrada para “${busca}”.`
+            : "Nenhuma disciplina neste filtro."}
         </p>
       )}
 
@@ -111,26 +181,44 @@ export function ListaDisciplinas(props: Props) {
         </Grupo>
       )}
     </section>
-  )
+  );
 }
 
-function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Grupo({
+  titulo,
+  children,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xs font-semibold tracking-[0.08em] text-muted uppercase">{titulo}</h2>
+      <h2 className="text-xs font-semibold tracking-[0.08em] text-muted uppercase">
+        {titulo}
+      </h2>
       <ul className="flex flex-col gap-6">{children}</ul>
     </div>
-  )
+  );
 }
 
 /** O bloco colorido à direita do card, no lugar do "Acessar" do portal. */
-function Indicador({ icone: Icone, rotulo, tom }: { icone: LucideIcon; rotulo: string; tom: string }) {
+function Indicador({
+  icone: Icone,
+  rotulo,
+  tom,
+}: {
+  icone: LucideIcon;
+  rotulo: string;
+  tom: string;
+}) {
   return (
-    <div className={`flex w-[92px] flex-none flex-col items-center justify-center gap-1.5 px-2 text-center sm:w-[102px] ${tom}`}>
+    <div
+      className={`flex w-[92px] flex-none flex-col items-center justify-center gap-1.5 px-2 text-center sm:w-[102px] ${tom}`}
+    >
       <Icone className="size-7" strokeWidth={2} aria-hidden />
       <span className="text-xs leading-tight">{rotulo}</span>
     </div>
-  )
+  );
 }
 
 function CartaoDisciplina({
@@ -141,36 +229,55 @@ function CartaoDisciplina({
   onEscolher,
   onPrevia,
 }: Props & { d: Disciplina }) {
-  const travada = d.requisitosFaltando.length > 0
-  const naGrade = turmaDaDisciplina.get(d.id)
-  const semTurmas = d.turmas.length === 0
-  const pendente = d.situacao === 'PENDENTE'
+  const travada = d.requisitosFaltando.length > 0;
+  const naGrade = turmaDaDisciplina.get(d.id);
+  const semTurmas = d.turmas.length === 0;
+  const pendente = d.situacao === "PENDENTE";
 
   const indicador = travada ? (
     <Indicador icone={Lock} rotulo="Travada" tom="bg-[#b9c0c9] text-white" />
   ) : naGrade ? (
-    <Indicador icone={CalendarCheck} rotulo={`${naGrade.codigo} na grade`} tom="bg-acao text-white" />
+    <Indicador
+      icone={CalendarCheck}
+      rotulo={`${naGrade.codigo} na grade`}
+      tom="bg-acao text-white"
+    />
   ) : semTurmas ? (
-    <Indicador icone={CalendarX} rotulo="Sem turmas" tom="bg-faixa text-muted" />
+    <Indicador
+      icone={CalendarX}
+      rotulo="Sem turmas"
+      tom="bg-faixa text-muted"
+    />
   ) : (
-    <Indicador icone={CalendarPlus} rotulo="Escolha a turma" tom="bg-acao-suave text-link" />
-  )
+    <Indicador
+      icone={CalendarPlus}
+      rotulo="Escolha a turma"
+      tom="bg-acao-suave text-link"
+    />
+  );
 
   return (
     <li className="overflow-hidden rounded-[2px] bg-cartao shadow-[0_1px_2px_rgba(0,0,0,.1)]">
       <div className="flex min-h-[96px]">
         <div className="min-w-0 flex-1 px-5 py-4">
-          <h3 className={`text-xl leading-snug font-light ${travada ? 'text-muted' : 'text-link'}`}>
+          <h3
+            className={`text-xl leading-snug font-light ${travada ? "text-muted" : "text-link"}`}
+          >
             <span className="num">{d.codigo}</span> - {d.nome}
           </h3>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
             {pendente && d.statusHistorico ? (
               <>
-                <AlertTriangle className="size-3.5 flex-none text-ambar" aria-hidden />
+                <AlertTriangle
+                  className="size-3.5 flex-none text-ambar"
+                  aria-hidden
+                />
                 <span className="text-ambar">
                   {MOTIVO[d.statusHistorico]} no {d.periodo}º período
                 </span>
-                <span className="text-muted">· {d.cargaHorariaSemanal}h semanais</span>
+                <span className="text-muted">
+                  · {d.cargaHorariaSemanal}h semanais
+                </span>
               </>
             ) : (
               <span className="text-muted">
@@ -182,14 +289,19 @@ function CartaoDisciplina({
         {indicador}
       </div>
 
-      <div className="bg-faixa px-5 pt-3 pb-4" onMouseLeave={() => onPrevia(null)}>
+      <div
+        className="bg-faixa px-5 pt-3 pb-4"
+        onMouseLeave={() => onPrevia(null)}
+      >
         {travada ? (
           <p className="flex items-center gap-1.5 text-[13px] text-titulo">
             <Lock className="size-3.5 flex-none" aria-hidden />
-            Requer {d.requisitosFaltando.map((r) => r.nome).join(' e ')}.
+            Requer {d.requisitosFaltando.map((r) => r.nome).join(" e ")}.
           </p>
         ) : semTurmas ? (
-          <p className="text-[13px] text-titulo">Nenhuma turma ofertada neste semestre.</p>
+          <p className="text-[13px] text-titulo">
+            Nenhuma turma ofertada neste semestre.
+          </p>
         ) : (
           <>
             <p className="text-xs text-muted italic">Turmas ofertadas:</p>
@@ -201,7 +313,13 @@ function CartaoDisciplina({
                   estado={estadoDe(t, d)}
                   ocupada={ocupada === t.id}
                   onEscolher={() => onEscolher(t, d)}
-                  onPrevia={(ativa) => onPrevia(ativa ? { turma: t, disciplina: d, estado: estadoDe(t, d) } : null)}
+                  onPrevia={(ativa) =>
+                    onPrevia(
+                      ativa
+                        ? { turma: t, disciplina: d, estado: estadoDe(t, d) }
+                        : null,
+                    )
+                  }
                 />
               ))}
             </div>
@@ -209,7 +327,7 @@ function CartaoDisciplina({
         )}
       </div>
     </li>
-  )
+  );
 }
 
 function ChipTurma({
@@ -219,13 +337,13 @@ function ChipTurma({
   onEscolher,
   onPrevia,
 }: {
-  turma: Turma
-  estado: EstadoTurma
-  ocupada: boolean
-  onEscolher: () => void
-  onPrevia: (ativa: boolean) => void
+  turma: Turma;
+  estado: EstadoTurma;
+  ocupada: boolean;
+  onEscolher: () => void;
+  onPrevia: (ativa: boolean) => void;
 }) {
-  const bloqueada = estado.tipo === 'conflito' || estado.tipo === 'limite'
+  const bloqueada = estado.tipo === "conflito" || estado.tipo === "limite";
 
   const status = ocupada ? (
     <span className="text-muted">Salvando…</span>
@@ -233,24 +351,37 @@ function ChipTurma({
     {
       naGrade: (
         <span className="inline-flex items-center gap-1 font-semibold text-link-escuro">
-          <Check className="size-3.5" aria-hidden /> Na grade · clique para remover
+          <Check className="size-3.5" aria-hidden /> Na grade · clique para
+          remover
         </span>
       ),
       livre: (
         <span className="font-semibold text-positive">
-          {estado.tipo === 'livre' && estado.substitui ? 'Trocar para esta' : 'Livre'}
+          {estado.tipo === "livre" && estado.substitui
+            ? "Trocar para esta"
+            : "Livre"}
         </span>
       ),
       conflito: (
         <span className="truncate font-semibold text-negative-ink">
-          Bate com {estado.tipo === 'conflito' ? estado.conflito.com.disciplinaNome : ''}
+          Bate com{" "}
+          {estado.tipo === "conflito" ? estado.conflito.com.disciplinaNome : ""}
         </span>
       ),
-      limite: <span className="font-semibold text-warning-ink">Passa do limite de carga</span>,
+      limite: (
+        <span className="font-semibold text-warning-ink">
+          Passa do limite de carga
+        </span>
+      ),
     }[estado.tipo]
-  )
+  );
 
-  const acao = estado.tipo === 'naGrade' ? 'remover da grade' : bloqueada ? 'indisponível' : 'adicionar à grade'
+  const acao =
+    estado.tipo === "naGrade"
+      ? "remover da grade"
+      : bloqueada
+        ? "indisponível"
+        : "adicionar à grade";
 
   return (
     <button
@@ -262,18 +393,20 @@ function ChipTurma({
       aria-disabled={bloqueada}
       aria-label={`${turma.codigo}, ${resumoHorarios(turma.horarios)}: ${acao}`}
       className={`flex min-w-0 flex-col gap-0.5 rounded-[2px] border border-l-4 px-3 py-2 text-left transition-colors ${
-        estado.tipo === 'naGrade'
-          ? 'border-acao bg-acao-suave'
-          : estado.tipo === 'conflito'
-            ? 'cursor-not-allowed border-negative/25 border-l-negative bg-negative-bg'
-            : estado.tipo === 'limite'
-              ? 'cursor-not-allowed border-warning-line border-l-ambar bg-warning-bg'
-              : 'border-borda border-l-borda bg-chip hover:border-acao hover:bg-white'
-      } ${ocupada ? 'opacity-60' : ''}`}
+        estado.tipo === "naGrade"
+          ? "border-acao bg-acao-suave"
+          : estado.tipo === "conflito"
+            ? "cursor-not-allowed border-negative/25 border-l-negative bg-negative-bg"
+            : estado.tipo === "limite"
+              ? "cursor-not-allowed border-warning-line border-l-ambar bg-warning-bg"
+              : "border-borda border-l-borda bg-chip hover:border-acao hover:bg-white"
+      } ${ocupada ? "opacity-60" : ""}`}
     >
       <span className="num text-sm font-bold text-ink">{turma.codigo}</span>
-      <span className="num text-xs text-muted">{resumoHorarios(turma.horarios)}</span>
+      <span className="num text-xs text-muted">
+        {resumoHorarios(turma.horarios)}
+      </span>
       <span className="mt-0.5 truncate text-xs">{status}</span>
     </button>
-  )
+  );
 }
