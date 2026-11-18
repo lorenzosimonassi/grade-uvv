@@ -18,3 +18,5 @@ app.use((_req, res) => {
   res.status(404).json({ mensagem: 'Rota não encontrada.' })
 })
 app.use(tratarErros)
+
+export default app
